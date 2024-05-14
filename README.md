@@ -1,1 +1,1 @@
-# flowpipe-mod-gcp-thrifty
+# GCP Thrifty Mod for Flowpipe
