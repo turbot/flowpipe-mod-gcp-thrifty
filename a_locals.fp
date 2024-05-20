@@ -40,4 +40,6 @@ locals {
 locals {
   pipeline_optional_message            = detect_correct.pipeline.optional_message
   gcp_pipeline_delete_compute_snapshot = gcp.pipeline.delete_compute_snapshot
+  gcp_pipeline_create_compute_snapshot = gcp.pipeline.create_compute_snapshot
+  gcp_pipeline_delete_compute_disk     = gcp.pipeline.delete_compute_disk
 }

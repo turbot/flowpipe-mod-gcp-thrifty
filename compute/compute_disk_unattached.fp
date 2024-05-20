@@ -1,5 +1,5 @@
 locals {
-  compute_disk_unattached_query = <<-EOQ
+  compute_disk_if_unattached_query = <<-EOQ
     select
       name as disk_name,
       project,
@@ -150,7 +150,7 @@ pipeline "correct_compute_disk_if_unattached" {
     pipeline        = pipeline.correct_one_compute_disk_if_unattached
     args = {
       disk_name          = each.value.disk_name
-      project            = each.value.prooject
+      project            = each.value.project
       zone               = each.value.zone
       notifier           = param.notifier
       notification_level = param.notification_level
@@ -263,7 +263,7 @@ pipeline "correct_one_compute_disk_if_unattached" {
           pipeline_args = {
             disk_name  = param.disk_name
             zone       = param.zone
-            project_id = param.project
+            project    = param.project
             cred       = param.cred
           }
           success_msg = "Snapshotted & Deleted compute disk ${param.disk_name}."
