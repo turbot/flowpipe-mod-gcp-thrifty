@@ -251,6 +251,7 @@ pipeline "correct_one_sql_db_instance_with_low_connection_count" {
           style        = local.style_alert
           pipeline_ref = local.gcp_pipeline_delete_sql_instance
           pipeline_args = {
+            cred         = param.cred
             instance_name = param.instance_name
             project_id    = param.project
           }
