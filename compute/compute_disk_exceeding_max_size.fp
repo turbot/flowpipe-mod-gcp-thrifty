@@ -14,7 +14,7 @@ locals {
 trigger "query" "detect_and_correct_compute_disks_exceeding_max_size" {
   title       = "Detect & correct Compute Disks exceeding max size"
   description = "Detects Compute Disks exceeding maximum size and runs your chosen action."
-  // documentation = file("./compute/docs/detect_and_correct_compute_disks_exceeding_max_size_trigger.md")
+  documentation = file("./compute/docs/detect_and_correct_compute_disks_exceeding_max_size_trigger.md")
   tags = merge(local.compute_common_tags, { class = "managed" })
 
   enabled  = var.compute_disks_exceeding_max_size_trigger_enabled
@@ -33,7 +33,7 @@ trigger "query" "detect_and_correct_compute_disks_exceeding_max_size" {
 pipeline "detect_and_correct_compute_disks_exceeding_max_size" {
   title       = "Detect & correct Compute Disks exceeding max size"
   description = "Detects Compute Disks exceeding maximum size and runs your chosen action."
-  // documentation = file("./compute/docs/detect_and_correct_compute_disks_exceeding_max_size.md")
+  documentation = file("./compute/docs/detect_and_correct_compute_disks_exceeding_max_size.md")
   tags = merge(local.compute_common_tags, { class = "managed", type = "featured" })
 
   param "database" {
@@ -93,7 +93,7 @@ pipeline "detect_and_correct_compute_disks_exceeding_max_size" {
 pipeline "correct_compute_disks_exceeding_max_size" {
   title       = "Correct Compute Disks exceeding max size"
   description = "Runs corrective action on a collection of Compute Disks exceeding maximum size."
-  // documentation = file("./compute/docs/correct_compute_disks_exceeding_max_size.md")
+  documentation = file("./compute/docs/correct_compute_disks_exceeding_max_size.md")
   tags = merge(local.compute_common_tags, { class = "managed" })
 
   param "items" {
@@ -164,7 +164,7 @@ pipeline "correct_compute_disks_exceeding_max_size" {
 pipeline "correct_one_compute_disk_exceeding_max_size" {
   title       = "Correct one Compute Disk exceeding max size"
   description = "Runs corrective action on a Compute Disk exceeding maximum size."
-  // documentation = file("./compute/docs/correct_one_compute_disk_exceeding_max_size.md")
+  documentation = file("./compute/docs/correct_one_compute_disk_exceeding_max_size.md")
   tags = merge(local.compute_common_tags, { class = "managed" })
 
   param "project" {
@@ -289,7 +289,7 @@ variable "compute_disks_exceeding_max_size_trigger_schedule" {
 variable "compute_disks_exceeding_max_size_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
-  default     = "delete_disk"
+  default     = "notify"
 }
 
 variable "compute_disks_exceeding_max_size_enabled_actions" {
@@ -301,5 +301,5 @@ variable "compute_disks_exceeding_max_size_enabled_actions" {
 variable "compute_disk_exceeding_max_size" {
   type        = number
   description = "The maximum size (GB) allowed for disks."
-  default     = 1
+  default     = 100
 }
