@@ -6,7 +6,7 @@ locals {
   from
     gcp_compute_snapshot
   where
-    date_part('day', now()-creation_timestamp) < ${var.compute_snapshots_exceeding_max_age_days};
+    date_part('day', now()-creation_timestamp) > ${var.compute_snapshots_exceeding_max_age_days};
   EOQ
 }
 
