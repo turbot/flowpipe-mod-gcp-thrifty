@@ -38,9 +38,11 @@ locals {
 
 // Pipeline References
 locals {
-  pipeline_optional_message            = detect_correct.pipeline.optional_message
-  gcp_pipeline_delete_compute_snapshot = gcp.pipeline.delete_compute_snapshot
-  gcp_pipeline_create_compute_snapshot = gcp.pipeline.create_compute_snapshot
-  gcp_pipeline_delete_compute_disk     = gcp.pipeline.delete_compute_disk
-  gcp_pipeline_detach_compute_disk     = gcp.pipeline.detach_compute_disk_from_instance
+  pipeline_optional_message               = detect_correct.pipeline.optional_message
+  gcp_pipeline_delete_compute_snapshot    = gcp.pipeline.delete_compute_snapshot
+  gcp_pipeline_create_compute_snapshot    = gcp.pipeline.create_compute_snapshot
+  gcp_pipeline_delete_compute_disk        = gcp.pipeline.delete_compute_disk
+  gcp_pipeline_detach_compute_disk        = gcp.pipeline.detach_compute_disk_from_instance
+  gcp_pipeline_stop_compute_instance      = gcp.pipeline.stop_compute_instance
+  gcp_pipeline_terminate_compute_instance = gcp.pipeline.delete_compute_instance
 }
