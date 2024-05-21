@@ -46,4 +46,5 @@ locals {
   gcp_pipeline_stop_compute_instance      = gcp.pipeline.stop_compute_instance
   gcp_pipeline_terminate_compute_instance = gcp.pipeline.delete_compute_instance
   gcp_pipeline_delete_compute_address     = gcp.pipeline.delete_compute_address
+  gcp_pipeline_delete_sql_instance        = gcp.pipeline.delete_sql_instance
 }
