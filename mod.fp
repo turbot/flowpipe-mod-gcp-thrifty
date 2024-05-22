@@ -15,7 +15,7 @@ mod "gcp_thrifty" {
       version = "*"
     }
     mod "github.com/turbot/flowpipe-mod-gcp" {
-      version = "v0.2.1-rc.1"
+      version = "v0.2.1-rc.3"
     }
   }
 }
