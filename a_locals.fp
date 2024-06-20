@@ -51,4 +51,5 @@ locals {
   gcp_pipeline_update_logging_bucket      = gcp.pipeline.update_logging_bucket
   gcp_pipeline_update_storage_bucket      = gcp.pipeline.update_storage_bucket
   gcp_pipeline_set_machine_type           = gcp.pipeline.set_machine_type
+  gcp_pipeline_update_node_group          = gcp.pipeline.update_node_group
 }
