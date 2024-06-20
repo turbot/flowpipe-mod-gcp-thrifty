@@ -43,9 +43,12 @@ locals {
   gcp_pipeline_create_compute_snapshot    = gcp.pipeline.create_compute_snapshot
   gcp_pipeline_delete_compute_disk        = gcp.pipeline.delete_compute_disk
   gcp_pipeline_detach_compute_disk        = gcp.pipeline.detach_compute_disk_from_instance
+  gcp_pipeline_start_compute_instance     = gcp.pipeline.start_compute_instance
   gcp_pipeline_stop_compute_instance      = gcp.pipeline.stop_compute_instance
   gcp_pipeline_terminate_compute_instance = gcp.pipeline.delete_compute_instance
   gcp_pipeline_delete_compute_address     = gcp.pipeline.delete_compute_address
   gcp_pipeline_delete_sql_instance        = gcp.pipeline.delete_sql_instance
   gcp_pipeline_update_logging_bucket      = gcp.pipeline.update_logging_bucket
+  gcp_pipeline_update_storage_bucket      = gcp.pipeline.update_storage_bucket
+  gcp_pipeline_set_machine_type           = gcp.pipeline.set_machine_type
 }
