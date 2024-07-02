@@ -13,9 +13,10 @@ locals {
 }
 
 trigger "query" "detect_and_correct_logging_buckets_with_high_retention" {
-  title       = "Detect & correct Logging Buckets with high retention period"
-  description = "Detects Logging Buckets with retention periods exceeding the specified maximum and runs your chosen action."
-  tags        = merge(local.logging_common_tags, { class = "unused" })
+  title         = "Detect & correct Logging Buckets with high retention period"
+  description   = "Detects Logging Buckets with retention periods exceeding the specified maximum and runs your chosen action."
+  documentation = file("./logging/docs/detect_and_correct_logging_buckets_with_high_retention_trigger.md")
+  tags          = merge(local.logging_common_tags, { class = "unused" })
 
   enabled  = var.logging_buckets_with_high_retention_trigger_enabled
   schedule = var.logging_buckets_with_high_retention_trigger_schedule
@@ -31,9 +32,10 @@ trigger "query" "detect_and_correct_logging_buckets_with_high_retention" {
 }
 
 pipeline "detect_and_correct_logging_buckets_with_high_retention" {
-  title       = "Detect & correct Logging Buckets with high retention period"
-  description = "Detects Logging Buckets with retention periods exceeding the specified maximum and runs your chosen action."
-  tags        = merge(local.logging_common_tags, { class = "unused", type = "featured" })
+  title         = "Detect & correct Logging Buckets with high retention period"
+  description   = "Detects Logging Buckets with retention periods exceeding the specified maximum and runs your chosen action."
+  documentation = file("./logging/docs/detect_and_correct_logging_buckets_with_high_retention_pipeline.md")
+  tags          = merge(local.logging_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
     type        = string
@@ -97,9 +99,10 @@ pipeline "detect_and_correct_logging_buckets_with_high_retention" {
 }
 
 pipeline "correct_logging_buckets_with_high_retention" {
-  title       = "Correct Logging Buckets with high retention period"
-  description = "Runs corrective action on a collection of Logging Buckets with high retention periods."
-  tags        = merge(local.logging_common_tags, { class = "unused" })
+  title         = "Correct Logging Buckets with high retention period"
+  description   = "Runs corrective action on a collection of Logging Buckets with high retention periods."
+  documentation = file("./logging/docs/correct_logging_buckets_with_high_retention_pipeline.md")
+  tags          = merge(local.logging_common_tags, { class = "unused" })
 
   param "items" {
     type = list(object({
@@ -175,9 +178,10 @@ pipeline "correct_logging_buckets_with_high_retention" {
 }
 
 pipeline "correct_one_logging_bucket_with_high_retention" {
-  title       = "Correct one Logging Bucket with high retention period"
-  description = "Runs corrective action on a Logging Bucket with high retention period."
-  tags        = merge(local.logging_common_tags, { class = "unused" })
+  title         = "Correct one Logging Bucket with high retention period"
+  description   = "Runs corrective action on a Logging Bucket with high retention period."
+  documentation = file("./logging/docs/correct_one_logging_bucket_with_high_retention_pipeline.md")
+  tags          = merge(local.logging_common_tags, { class = "unused" })
 
   param "bucket_name" {
     type        = string
@@ -294,7 +298,7 @@ variable "logging_buckets_with_high_retention_trigger_schedule" {
 variable "logging_buckets_with_high_retention_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
-  default     = "update_retention"
+  default     = "notify"
 }
 
 variable "logging_buckets_with_high_retention_enabled_actions" {

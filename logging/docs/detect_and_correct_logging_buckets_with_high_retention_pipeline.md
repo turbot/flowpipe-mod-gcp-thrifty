@@ -1,10 +1,10 @@
-# Detect & Correct compute addresses If Unattached
+# Detect & correct Logging buckets with high retention
 
 ## Overview
 
-Compute addresses are a costly resource to maintain, if they are unattached you will be accruing costs without any benefit; therefore unattached Compute addresses should be released if not required.
+Logging buckets can be costly to run, especially if they're rarely used, buckets with high retention periods should be reviewed to determine if they're still required.
 
-This pipeline detects unattached Compute addresses and then either sends a notification or attempts to perform a predefined corrective action.
+This query trigger detects Logging buckets with high retention periods and then either sends a notification or attempts to perform a predefined corrective action.
 
 ## Getting Started
 
@@ -12,7 +12,7 @@ This control will work out-of-the-box with some sensible defaults (configurable 
 
 You should be able to simply run the following command in your terminal:
 ```sh
-flowpipe pipeline run detect_and_correct_compute_addresses_if_unattached
+flowpipe pipeline run detect_and_correct_logging_buckets_with_high_retention
 ```
 
 You should now receive notification messages for the detections in your configured [notifier](https://flowpipe.io/docs/reference/config-files/notifier).
@@ -34,7 +34,7 @@ flowpipe server
 
 You can then run the command below:
 ```sh
-flowpipe pipeline run detect_and_correct_compute_addresses_if_unattached --host local --arg='approvers=["default"]'
+flowpipe pipeline run detect_and_correct_logging_buckets_with_high_retention --host local --arg='approvers=["default"]'
 ```
 
 This will prompt for an action for each detected resource and then attempt to perform the chosen action upon receipt of input.
@@ -45,12 +45,12 @@ You can also decide to bypass asking for decision and just automatically apply t
 
 You can automatically apply a specific action without the need for running a Flowpipe Server and asking for a decision by setting the `default_action` parameter:
 ```sh
-flowpipe pipeline run detect_and_correct_compute_addresses_if_unattached --arg='default_action="release"'
+flowpipe pipeline run detect_and_correct_logging_buckets_with_high_retention --arg='default_action="update_retention"'
 ```
 
 However; if you have configured a non-empty list for your `approvers` variable, you will need to override it as below:
 ```sh
-flowpipe pipeline run detect_and_correct_compute_addresses_if_unattached --arg='approvers=[]' --arg='default_action="release"'
+flowpipe pipeline run detect_and_correct_logging_buckets_with_high_retention --arg='approvers=[]' --arg='default_action="update_retention"'
 ```
 
-This will attempt to apply the action to every detected item, if you're happy with this approach you could have this occur mmore frequently by either scheduling the command by yourself or enabling the associated [Query Trigger](https://hub.flowpipe.io/mods/turbot/gcp_thrifty/triggers/gcp_thrifty.trigger.query.detect_and_correct_compute_addresses_if_unattached).
+This will attempt to apply the action to every detected item, if you're happy with this approach you could have this occur mmore frequently by either scheduling the command by yourself or enabling the associated [Query Trigger](https://hub.flowpipe.io/mods/turbot/gcp_thrifty/triggers/gcp_thrifty.trigger.query.detect_and_correct_logging_buckets_with_high_retention).

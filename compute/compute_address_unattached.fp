@@ -12,10 +12,10 @@ locals {
 }
 
 trigger "query" "detect_and_correct_compute_addresses_if_unattached" {
-  title       = "Detect & correct Compute Addresses if unattached"
-  description = "Detects unattached Compute Addresses and runs your chosen action."
-  // documentation = file("./compute/docs/detect_and_correct_compute_addresses_if_unattached_trigger.md")
-  tags = merge(local.compute_common_tags, { class = "unused" })
+  title         = "Detect & correct Compute Addresses if unattached"
+  description   = "Detects unattached Compute Addresses and runs your chosen action."
+  documentation = file("./compute/docs/detect_and_correct_compute_addresses_if_unattached_trigger.md")
+  tags          = merge(local.compute_common_tags, { class = "unused" })
 
   enabled  = var.compute_addresses_if_unattached_trigger_enabled
   schedule = var.compute_addresses_if_unattached_trigger_schedule
@@ -31,10 +31,10 @@ trigger "query" "detect_and_correct_compute_addresses_if_unattached" {
 }
 
 pipeline "detect_and_correct_compute_addresses_if_unattached" {
-  title       = "Detect & correct Compute Addresses if unattached"
-  description = "Detects unattached Compute Addresses and runs your chosen action."
-  // documentation = file("./compute/docs/detect_and_correct_compute_addresses_if_unattached.md")
-  tags = merge(local.compute_common_tags, { class = "unused", type = "featured" })
+  title         = "Detect & correct Compute Addresses if unattached"
+  description   = "Detects unattached Compute Addresses and runs your chosen action."
+  documentation = file("./compute/docs/detect_and_correct_compute_addresses_if_unattached.md")
+  tags          = merge(local.compute_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
     type        = string
@@ -91,10 +91,10 @@ pipeline "detect_and_correct_compute_addresses_if_unattached" {
 }
 
 pipeline "correct_compute_addresses_if_unattached" {
-  title       = "Correct Compute Addresses if unattached"
-  description = "Runs corrective action on a collection of Compute Addresses which are unattached."
+  title         = "Correct Compute Addresses if unattached"
+  description   = "Runs corrective action on a collection of Compute Addresses which are unattached."
   documentation = file("./compute/docs/correct_compute_addresses_if_unattached.md")
-  tags = merge(local.compute_common_tags, { class = "unused" })
+  tags          = merge(local.compute_common_tags, { class = "unused" })
 
   param "items" {
     type = list(object({
@@ -162,10 +162,10 @@ pipeline "correct_compute_addresses_if_unattached" {
 }
 
 pipeline "correct_one_compute_address_if_unattached" {
-  title       = "Correct one Compute Address if unattached"
-  description = "Runs corrective action on one Compute Address which is unattached."
-  documentation = file("./compute/docs/correct_one_compute_addresses_if_unattached.md")
-  tags = merge(local.compute_common_tags, { class = "unused" })
+  title         = "Correct one Compute Address if unattached"
+  description   = "Runs corrective action on one Compute Address which is unattached."
+  documentation = file("./compute/docs/correct_one_compute_address_if_unattached.md")
+  tags          = merge(local.compute_common_tags, { class = "unused" })
 
   param "address_name" {
     type        = string

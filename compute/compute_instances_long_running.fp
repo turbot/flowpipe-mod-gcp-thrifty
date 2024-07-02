@@ -296,7 +296,7 @@ variable "compute_instances_exceeding_max_age_days" {
 variable "compute_instances_long_running_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
-  default     = "terminate_instance"
+  default     = "notify"
 }
 
 variable "compute_instances_long_running_enabled_actions" {

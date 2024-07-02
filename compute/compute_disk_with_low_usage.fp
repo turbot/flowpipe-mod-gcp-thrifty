@@ -204,7 +204,7 @@ pipeline "correct_compute_disks_with_low_usage" {
 pipeline "correct_one_compute_disk_with_low_usage" {
   title       = "Correct one Compute Disk with low usage"
   description = "Runs corrective action on a Compute Disk with low usage."
-  documentation = file("./compute/docs/correct_one_compute_disks_with_low_usage.md")
+  documentation = file("./compute/docs/correct_one_compute_disk_with_low_usage.md")
   tags = merge(local.compute_common_tags, { class = "unused" })
 
   param "disk_name" {

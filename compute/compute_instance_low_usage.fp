@@ -25,10 +25,10 @@ locals {
 }
 
 trigger "query" "detect_and_correct_compute_instances_with_low_utilization" {
-  title       = "Detect & correct Compute instances with low utilization"
-  description = "Detects Compute instances with low utilization and runs your chosen action."
-  // documentation = file("./compute/docs/detect_and_correct_compute_instances_with_low_utilization_trigger.md")
-  tags = merge(local.compute_common_tags, { class = "unused" })
+  title         = "Detect & correct Compute instances with low utilization"
+  description   = "Detects Compute instances with low utilization and runs your chosen action."
+  documentation = file("./compute/docs/detect_and_correct_compute_instances_with_low_utilization_trigger.md")
+  tags          = merge(local.compute_common_tags, { class = "unused" })
 
   enabled  = var.compute_instances_with_low_utilization_trigger_enabled
   schedule = var.compute_instances_with_low_utilization_trigger_schedule
@@ -44,10 +44,10 @@ trigger "query" "detect_and_correct_compute_instances_with_low_utilization" {
 }
 
 pipeline "detect_and_correct_compute_instances_with_low_utilization" {
-  title       = "Detect & correct Compute instances with low utilization"
-  description = "Detects Compute instances with low utilization and runs your chosen action."
-  // documentation = file("./compute/docs/detect_and_correct_compute_instances_with_low_utilization.md")
-  tags = merge(local.compute_common_tags, { class = "unused", type = "featured" })
+  title         = "Detect & correct Compute instances with low utilization"
+  description   = "Detects Compute instances with low utilization and runs your chosen action."
+  documentation = file("./compute/docs/detect_and_correct_compute_instances_with_low_utilization.md")
+  tags          = merge(local.compute_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
     type        = string
@@ -104,10 +104,10 @@ pipeline "detect_and_correct_compute_instances_with_low_utilization" {
 }
 
 pipeline "correct_compute_instances_with_low_utilization" {
-  title       = "Correct Compute instances with low utilization"
-  description = "Corrects Compute instances with low utilization based on the chosen action."
-  // documentation = file("./compute/docs/correct_compute_instances_with_low_utilization.md")
-  tags = merge(local.compute_common_tags, { class = "unused" })
+  title         = "Correct Compute instances with low utilization"
+  description   = "Corrects Compute instances with low utilization based on the chosen action."
+  documentation = file("./compute/docs/correct_compute_instances_with_low_utilization.md")
+  tags          = merge(local.compute_common_tags, { class = "unused" })
 
   param "items" {
     type = list(object({
@@ -175,10 +175,10 @@ pipeline "correct_compute_instances_with_low_utilization" {
 }
 
 pipeline "correct_one_compute_instance_with_low_utilization" {
-  title       = "Correct one Compute instance with low utilization"
-  description = "Runs corrective action on a single Compute instance with low utilization."
-  // documentation = file("./compute/docs/correct_one_compute_instance_with_low_utilization.md")
-  tags = merge(local.compute_common_tags, { class = "unused" })
+  title         = "Correct one Compute instance with low utilization"
+  description   = "Runs corrective action on a single Compute instance with low utilization."
+  documentation = file("./compute/docs/correct_one_compute_instance_with_low_utilization.md")
+  tags          = merge(local.compute_common_tags, { class = "unused" })
 
   param "instance_name" {
     type        = string
@@ -385,7 +385,7 @@ variable "compute_instances_with_low_utilization_trigger_schedule" {
 variable "compute_instances_with_low_utilization_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
-  default     = "stop_downgrade_instance_type"
+  default     = "notify"
 }
 
 variable "compute_instances_with_low_utilization_enabled_actions" {

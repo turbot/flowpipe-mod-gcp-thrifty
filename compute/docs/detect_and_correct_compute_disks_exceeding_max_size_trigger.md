@@ -9,9 +9,9 @@ This query trigger detects compute disk exceeding a predetermined capacity and t
 ### Getting Started
 
 By default, this trigger is disabled, however it can be configred by [setting the below variables](https://flowpipe.io/docs/build/mod-variables#passing-input-variables)
-- `compute_disk_exceeding_max_size_trigger_enabled` should be set to `true` as the default is `false`.
-- `compute_disk_exceeding_max_size_trigger_schedule` should be set to your desired running [schedule](https://flowpipe.io/docs/flowpipe-hcl/trigger/schedule#more-examples)
-- `compute_disk_exceeding_max_size_default_action` should be set to your desired action (i.e. `"notify"` for notifications or `"snapshot_and_delete_disk"` to snapshot and then delete the volume).
+- `compute_disks_exceeding_max_size_trigger_enabled` should be set to `true` as the default is `false`.
+- `compute_disks_exceeding_max_size_trigger_schedule` should be set to your desired running [schedule](https://flowpipe.io/docs/flowpipe-hcl/trigger/schedule#more-examples)
+- `compute_disks_exceeding_max_size_default_action` should be set to your desired action (i.e. `"notify"` for notifications or `"snapshot_and_delete_disk"` to snapshot and then delete the volume).
 
 Then starting the server:
 ```sh

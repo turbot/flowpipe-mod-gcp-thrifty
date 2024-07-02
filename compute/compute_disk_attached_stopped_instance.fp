@@ -1,5 +1,5 @@
 locals {
-  compute_disk_attached_stopped_instance_query = <<-EOQ
+  compute_disks_attached_to_stopped_instances_query = <<-EOQ
     select
       d.name as disk_name,
       d.zone as zone,
@@ -14,29 +14,29 @@ locals {
   EOQ
 }
 
-trigger "query" "detect_and_correct_compute_disk_attached_stopped_instance" {
+trigger "query" "detect_and_correct_compute_disks_attached_to_stopped_instances" {
   title         = "Detect & correct Compute Disks attached to stopped instances"
   description   = "Detects Compute Disks attached to stopped instances and runs your chosen action."
-  documentation = file("./compute/docs/detect_and_correct_compute_disk_attached_to_stopped_instance_trigger.md")
+  documentation = file("./compute/docs/detect_and_correct_compute_disks_attached_to_stopped_instances_trigger.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
-  enabled  = var.compute_disk_attached_stopped_instance_trigger_enabled
-  schedule = var.compute_disk_attached_stopped_instance_trigger_schedule
+  enabled  = var.compute_disks_attached_to_stopped_instances_trigger_enabled
+  schedule = var.compute_disks_attached_to_stopped_instances_trigger_schedule
   database = var.database
-  sql      = local.compute_disk_attached_stopped_instance_query
+  sql      = local.compute_disks_attached_to_stopped_instances_query
 
   capture "insert" {
-    pipeline = pipeline.correct_compute_disk_attached_stopped_instance
+    pipeline = pipeline.correct_compute_disks_attached_to_stopped_instances
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_compute_disk_attached_stopped_instance" {
+pipeline "detect_and_correct_compute_disks_attached_to_stopped_instances" {
   title         = "Detect & correct Compute Disks attached to stopped instances"
   description   = "Detects Compute Disks attached to stopped instances and runs your chosen action."
-  documentation = file("./compute/docs/detect_and_correct_compute_disk_attached_to_stopped_instance.md")
+  documentation = file("./compute/docs/detect_and_correct_compute_disks_attached_to_stopped_instances.md")
   tags          = merge(local.compute_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
@@ -66,22 +66,22 @@ pipeline "detect_and_correct_compute_disk_attached_stopped_instance" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.compute_disk_attached_stopped_instance_default_action
+    default     = var.compute_disks_attached_to_stopped_instances_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.compute_disk_attached_stopped_instance_enabled_actions
+    default     = var.compute_disks_attached_to_stopped_instances_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.compute_disk_attached_stopped_instance_query
+    sql      = local.compute_disks_attached_to_stopped_instances_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_compute_disk_attached_stopped_instance
+    pipeline = pipeline.correct_compute_disks_attached_to_stopped_instances
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -93,10 +93,10 @@ pipeline "detect_and_correct_compute_disk_attached_stopped_instance" {
   }
 }
 
-pipeline "correct_compute_disk_attached_stopped_instance" {
+pipeline "correct_compute_disks_attached_to_stopped_instances" {
   title         = "Correct Compute Disks attached to stopped instances"
   description   = "Runs corrective action on a collection of Compute Disks attached to stopped instance."
-  documentation = file("./compute/docs/correct_compute_disk_attached_to_stopped_instance.md")
+  documentation = file("./compute/docs/correct_compute_disks_attached_to_stopped_instances.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
   param "items" {
@@ -129,13 +129,13 @@ pipeline "correct_compute_disk_attached_stopped_instance" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.compute_disk_attached_stopped_instance_default_action
+    default     = var.compute_disks_attached_to_stopped_instances_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.compute_disk_attached_stopped_instance_enabled_actions
+    default     = var.compute_disks_attached_to_stopped_instances_enabled_actions
   }
 
   step "message" "notify_detection_count" {
@@ -151,7 +151,7 @@ pipeline "correct_compute_disk_attached_stopped_instance" {
   step "pipeline" "correct_item" {
     for_each        = step.transform.items_by_id.value
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_compute_disk_attached_stopped_instance
+    pipeline        = pipeline.correct_one_compute_disk_attached_to_stopped_instance
     args = {
       disk_name          = each.value.disk_name
       project            = each.value.project
@@ -166,7 +166,7 @@ pipeline "correct_compute_disk_attached_stopped_instance" {
   }
 }
 
-pipeline "correct_one_compute_disk_attached_stopped_instance" {
+pipeline "correct_one_compute_disk_attached_to_stopped_instance" {
   title         = "Correct one Compute Disk attached to stopped instance"
   description   = "Runs corrective action on a Compute Disk attached to a stopped instance."
   documentation = file("./compute/docs/correct_one_compute_disk_attached_to_stopped_instance.md")
@@ -219,13 +219,13 @@ pipeline "correct_one_compute_disk_attached_stopped_instance" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.compute_disk_attached_stopped_instance_default_action
+    default     = var.compute_disks_attached_to_stopped_instances_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.compute_disk_attached_stopped_instance_enabled_actions
+    default     = var.compute_disks_attached_to_stopped_instances_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -419,25 +419,25 @@ pipeline "snapshot_and_detach_and_delete_disk" {
   }
 }
 
-variable "compute_disk_attached_stopped_instance_trigger_enabled" {
+variable "compute_disks_attached_to_stopped_instances_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
 }
 
-variable "compute_disk_attached_stopped_instance_trigger_schedule" {
+variable "compute_disks_attached_to_stopped_instances_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "The schedule on which to run the trigger if enabled."
 }
 
-variable "compute_disk_attached_stopped_instance_default_action" {
+variable "compute_disks_attached_to_stopped_instances_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
   default     = "notify"
 }
 
-variable "compute_disk_attached_stopped_instance_enabled_actions" {
+variable "compute_disks_attached_to_stopped_instances_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions to provide to approvers for selection."
   default     = ["skip", "detach_disk", "detach_and_delete_compute_disk", "snapshot_and_detach_and_delete_disk"]

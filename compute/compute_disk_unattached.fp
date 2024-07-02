@@ -1,5 +1,5 @@
 locals {
-  compute_disk_if_unattached_query = <<-EOQ
+  compute_disks_if_unattached_query = <<-EOQ
     select
       name as disk_name,
       project,
@@ -11,29 +11,29 @@ locals {
   EOQ
 }
 
-trigger "query" "detect_and_correct_compute_disk_if_unattached" {
-  title         = "Detect & correct compute disk if unattached"
-  description   = "Detects compute disk which are unattached and runs your chosen action."
-  documentation = file("./compute/docs/detect_and_correct_compute_disk_if_unattached_trigger.md")
+trigger "query" "detect_and_correct_compute_disks_if_unattached" {
+  title         = "Detect & correct compute disks if unattached"
+  description   = "Detects compute disks which are unattached and runs your chosen action."
+  documentation = file("./compute/docs/detect_and_correct_compute_disks_if_unattached_trigger.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
-  enabled  = var.compute_disk_if_unattached_trigger_enabled
-  schedule = var.compute_disk_if_unattached_trigger_schedule
+  enabled  = var.compute_disks_if_unattached_trigger_enabled
+  schedule = var.compute_disks_if_unattached_trigger_schedule
   database = var.database
-  sql      = local.compute_disk_if_unattached_query
+  sql      = local.compute_disks_if_unattached_query
 
   capture "insert" {
-    pipeline = pipeline.correct_compute_disk_if_unattached
+    pipeline = pipeline.correct_compute_disks_if_unattached
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_compute_disk_if_unattached" {
-  title         = "Detect & correct compute disk if unattached"
-  description   = "Detects compute disk which are unattached and runs your chosen action."
-  documentation = file("./compute/docs/detect_and_correct_compute_disk_if_unattached.md")
+pipeline "detect_and_correct_compute_disks_if_unattached" {
+  title         = "Detect & correct compute disks if unattached"
+  description   = "Detects compute disks which are unattached and runs your chosen action."
+  documentation = file("./compute/docs/detect_and_correct_compute_disks_if_unattached.md")
   tags          = merge(local.compute_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
@@ -63,22 +63,22 @@ pipeline "detect_and_correct_compute_disk_if_unattached" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.compute_disk_if_unattached_default_action
+    default     = var.compute_disks_if_unattached_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.compute_disk_if_unattached_enabled_actions
+    default     = var.compute_disks_if_unattached_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.compute_disk_if_unattached_query
+    sql      = local.compute_disks_if_unattached_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_compute_disk_if_unattached
+    pipeline = pipeline.correct_compute_disks_if_unattached
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -90,17 +90,17 @@ pipeline "detect_and_correct_compute_disk_if_unattached" {
   }
 }
 
-pipeline "correct_compute_disk_if_unattached" {
-  title         = "Correct compute disk if unattached"
-  description   = "Runs corrective action on a collection of compute disk which are unattached."
-  documentation = file("./compute/docs/correct_compute_disk_if_unattached.md")
+pipeline "correct_compute_disks_if_unattached" {
+  title         = "Correct compute disks if unattached"
+  description   = "Runs corrective action on a collection of compute disks which are unattached."
+  documentation = file("./compute/docs/correct_compute_disks_if_unattached.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
   param "items" {
     type = list(object({
-      disk_name   = string
-      project     = string
-      zone        = string
+      disk_name = string
+      project   = string
+      zone      = string
     }))
   }
 
@@ -125,13 +125,13 @@ pipeline "correct_compute_disk_if_unattached" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.compute_disk_if_unattached_default_action
+    default     = var.compute_disks_if_unattached_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.compute_disk_if_unattached_enabled_actions
+    default     = var.compute_disks_if_unattached_enabled_actions
   }
 
   step "message" "notify_detection_count" {
@@ -209,13 +209,13 @@ pipeline "correct_one_compute_disk_if_unattached" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.compute_disk_if_unattached_default_action
+    default     = var.compute_disks_if_unattached_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.compute_disk_if_unattached_enabled_actions
+    default     = var.compute_disks_if_unattached_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -261,10 +261,10 @@ pipeline "correct_one_compute_disk_if_unattached" {
           style        = local.style_alert
           pipeline_ref = pipeline.snapshot_and_delete_compute_disk
           pipeline_args = {
-            disk_name  = param.disk_name
-            zone       = param.zone
-            project    = param.project
-            cred       = param.cred
+            disk_name = param.disk_name
+            zone      = param.zone
+            project   = param.project
+            cred      = param.cred
           }
           success_msg = "Snapshotted & Deleted compute disk ${param.disk_name}."
           error_msg   = "Error snapshotting & deleting compute disk ${param.disk_name}."
@@ -322,25 +322,25 @@ pipeline "snapshot_and_delete_compute_disk" {
   }
 }
 
-variable "compute_disk_if_unattached_trigger_enabled" {
+variable "compute_disks_if_unattached_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
 }
 
-variable "compute_disk_if_unattached_trigger_schedule" {
+variable "compute_disks_if_unattached_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "The schedule on which to run the trigger if enabled."
 }
 
-variable "compute_disk_if_unattached_default_action" {
+variable "compute_disks_if_unattached_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
   default     = "notify"
 }
 
-variable "compute_disk_if_unattached_enabled_actions" {
+variable "compute_disks_if_unattached_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions to provide to approvers for selection."
   default     = ["skip", "delete_compute_disk", "snapshot_and_delete_compute_disk"]

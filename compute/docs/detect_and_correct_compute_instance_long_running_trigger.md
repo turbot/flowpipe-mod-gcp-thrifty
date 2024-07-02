@@ -11,7 +11,7 @@ This query trigger detects unused instances and then either sends a notification
 By default, this trigger is disabled, however it can be configred by [setting the below variables](https://flowpipe.io/docs/build/mod-variables#passing-input-variables)
 - `compute_instance_long_running_trigger_enabled` should be set to `true` as the default is `false`.
 - `compute_instance_long_running_trigger_schedule` should be set to your desired running [schedule](https://flowpipe.io/docs/flowpipe-hcl/trigger/schedule#more-examples)
-- `compute_instance_long_running_default_action` should be set to your desired action (i.e. `"notify"` for notifications or `"terminate_instance"` to delete the instance).
+- `compute_instance_long_running_default_action` should be set to your desired action (i.e. `"notify"` for notifications or `"terminate_instance"` to delete the instance or `"stop_instance"` to stop the inmstance).
 
 Then starting the server:
 ```sh
