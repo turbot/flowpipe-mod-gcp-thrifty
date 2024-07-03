@@ -1,12 +1,12 @@
 locals {
-  sql_db_instance_low_connection_count_query = <<-EOQ
+  sql_db_instance_low_cpu_utilization_query = <<-EOQ
     with sql_db_instance_usage as (
       select
         instance_id,
-        round(sum(maximum) / count(maximum)) as avg_max,
+        round(cast(sum(maximum) / count(maximum) as numeric), 1) as avg_max,
         count(maximum) as days
       from
-        gcp_sql_database_instance_metric_connections_daily
+        gcp_sql_database_instance_metric_cpu_utilization_daily
       where
         date_part('day', now() - timestamp) <= 30
       group by
@@ -19,34 +19,34 @@ locals {
       gcp_sql_database_instance as i
       left join sql_db_instance_usage as u on i.project || ':' || i.name = u.instance_id
     where
-      u.avg_max = 0;
+      avg_max <= ${var.alarm_threshold};
   EOQ
 }
 
-trigger "query" "detect_and_correct_sql_db_instances_with_low_connection_count" {
-  title         = "Detect & correct SQL DB instances with low connection count"
-  description   = "Detects SQL DB instances with low connection count and runs your chosen action."
-  documentation = file("./sql/docs/detect_and_correct_sql_db_instances_with_low_connection_count_trigger.md")
-  tags          = merge(local.sql_common_tags, { class = "unused" })
+trigger "query" "detect_and_correct_sql_db_instances_with_low_cpu_utilization" {
+  title       = "Detect & correct SQL DB instances with low CPU utilization"
+  description = "Detects SQL DB instances with low CPU utilization and runs your chosen action."
+  // documentation = file("./sql/docs/detect_and_correct_sql_db_instances_with_low_cpu_utilization_trigger.md")
+  tags = merge(local.sql_common_tags, { class = "unused" })
 
-  enabled  = var.sql_db_instances_with_low_connection_count_trigger_enabled
-  schedule = var.sql_db_instances_with_low_connection_count_trigger_schedule
+  enabled  = var.sql_db_instances_with_low_cpu_utilization_trigger_enabled
+  schedule = var.sql_db_instances_with_low_cpu_utilization_trigger_schedule
   database = var.database
-  sql      = local.sql_db_instance_low_connection_count_query
+  sql      = local.sql_db_instance_low_cpu_utilization_query
 
   capture "insert" {
-    pipeline = pipeline.correct_sql_db_instances_with_low_connection_count
+    pipeline = pipeline.correct_sql_db_instances_with_low_cpu_utilization
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_sql_db_instances_with_low_connection_count" {
-  title         = "Detect & correct SQL DB instances with low connection count"
-  description   = "Detects SQL DB instances with low connection count and runs your chosen action."
-  documentation = file("./sql/docs/detect_and_correct_sql_db_instances_with_low_connection_count.md")
-  tags          = merge(local.sql_common_tags, { class = "unused", type = "featured" })
+pipeline "detect_and_correct_sql_db_instances_with_low_cpu_utilization" {
+  title       = "Detect & correct SQL DB instances with low CPU utilization"
+  description = "Detects SQL DB instances with low CPU utilization and runs your chosen action."
+  // documentation = file("./sql/docs/detect_and_correct_sql_db_instances_with_low_cpu_utilization.md")
+  tags = merge(local.sql_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
     type        = string
@@ -75,22 +75,22 @@ pipeline "detect_and_correct_sql_db_instances_with_low_connection_count" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.sql_db_instances_with_low_connection_count_default_action
+    default     = var.sql_db_instances_with_low_cpu_utilization_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.sql_db_instances_with_low_connection_count_enabled_actions
+    default     = var.sql_db_instances_with_low_cpu_utilization_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.sql_db_instance_low_connection_count_query
+    sql      = local.sql_db_instance_low_cpu_utilization_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_sql_db_instances_with_low_connection_count
+    pipeline = pipeline.correct_sql_db_instances_with_low_cpu_utilization
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -102,11 +102,11 @@ pipeline "detect_and_correct_sql_db_instances_with_low_connection_count" {
   }
 }
 
-pipeline "correct_sql_db_instances_with_low_connection_count" {
-  title         = "Correct SQL DB instances with low connection count"
-  description   = "Runs corrective action on a collection of SQL DB instances with low connection count."
-  documentation = file("./sql/docs/correct_sql_db_instances_with_low_connection_count.md")
-  tags          = merge(local.sql_common_tags, { class = "unused" })
+pipeline "correct_sql_db_instances_with_low_cpu_utilization" {
+  title       = "Correct SQL DB instances with low CPU utilization"
+  description = "Runs corrective action on a collection of SQL DB instances with low CPU utilization."
+  // documentation = file("./sql/docs/correct_sql_db_instances_with_low_cpu_utilization.md")
+  tags = merge(local.sql_common_tags, { class = "unused" })
 
   param "items" {
     type = list(object({
@@ -136,19 +136,19 @@ pipeline "correct_sql_db_instances_with_low_connection_count" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.sql_db_instances_with_low_connection_count_default_action
+    default     = var.sql_db_instances_with_low_cpu_utilization_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.sql_db_instances_with_low_connection_count_enabled_actions
+    default     = var.sql_db_instances_with_low_cpu_utilization_enabled_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} SQL DB instances with low connection count."
+    text     = "Detected ${length(param.items)} SQL DB instances with low CPU utilization."
   }
 
   step "transform" "items_by_id" {
@@ -158,7 +158,7 @@ pipeline "correct_sql_db_instances_with_low_connection_count" {
   step "pipeline" "correct_item" {
     for_each        = step.transform.items_by_id.value
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_sql_db_instance_with_low_connection_count
+    pipeline        = pipeline.correct_one_sql_db_instance_with_low_cpu_utilization
     args = {
       instance_name      = each.value.instance_name
       project            = each.value.project
@@ -171,11 +171,11 @@ pipeline "correct_sql_db_instances_with_low_connection_count" {
   }
 }
 
-pipeline "correct_one_sql_db_instance_with_low_connection_count" {
-  title         = "Correct one SQL DB instance with low connection count"
-  description   = "Runs corrective action on a SQL DB instance with low connection count."
-  documentation = file("./sql/docs/correct_one_sql_db_instance_with_low_connection_count.md")
-  tags          = merge(local.sql_common_tags, { class = "unused" })
+pipeline "correct_one_sql_db_instance_with_low_cpu_utilization" {
+  title       = "Correct one SQL DB instance with low CPU utilization"
+  description = "Runs corrective action on a SQL DB instance with low CPU utilization."
+  // documentation = file("./sql/docs/correct_one_sql_db_instance_with_low_cpu_utilization.md")
+  tags = merge(local.sql_common_tags, { class = "unused" })
 
   param "instance_name" {
     type        = string
@@ -190,6 +190,7 @@ pipeline "correct_one_sql_db_instance_with_low_connection_count" {
   param "cred" {
     type        = string
     description = local.description_credential
+    default     = "default"
   }
 
   param "notifier" {
@@ -213,13 +214,13 @@ pipeline "correct_one_sql_db_instance_with_low_connection_count" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.sql_db_instances_with_low_connection_count_default_action
+    default     = var.sql_db_instances_with_low_cpu_utilization_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.sql_db_instances_with_low_connection_count_enabled_actions
+    default     = var.sql_db_instances_with_low_cpu_utilization_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -228,7 +229,7 @@ pipeline "correct_one_sql_db_instance_with_low_connection_count" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected SQL DB instance ${param.instance_name} with low connection count."
+      detect_msg         = "Detected SQL DB instance ${param.instance_name} with low CPU utilization."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -240,10 +241,23 @@ pipeline "correct_one_sql_db_instance_with_low_connection_count" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped SQL DB Instance ${param.instance_name} with low connection count."
+            text     = "Skipped SQL DB Instance ${param.instance_name} with low CPU utilization."
           }
           success_msg = "Skipped SQL DB Instance ${param.instance_name}."
           error_msg   = "Error skipping SQL DB Instance ${param.instance_name}."
+        },
+        "stop_sql_instance" = {
+          label        = "Stop Instance"
+          value        = "stop_sql_instance"
+          style        = local.style_alert
+          pipeline_ref = local.gcp_pipeline_stop_sql_instance
+          pipeline_args = {
+            cred        = param.cred
+            project_id  = param.project
+            instance_name = param.instance_name
+          }
+          success_msg = "Stopped SQL DB Instance ${param.instance_name}."
+          error_msg   = "Error stopping SQL DB Instance ${param.instance_name}."
         },
         "delete_instance" = {
           label        = "Delete Instance"
@@ -251,7 +265,7 @@ pipeline "correct_one_sql_db_instance_with_low_connection_count" {
           style        = local.style_alert
           pipeline_ref = local.gcp_pipeline_delete_sql_instance
           pipeline_args = {
-            cred         = param.cred
+            cred          = param.cred
             instance_name = param.instance_name
             project_id    = param.project
           }
@@ -263,26 +277,32 @@ pipeline "correct_one_sql_db_instance_with_low_connection_count" {
   }
 }
 
-variable "sql_db_instances_with_low_connection_count_trigger_enabled" {
+variable "sql_db_instances_with_low_cpu_utilization_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
 }
 
-variable "sql_db_instances_with_low_connection_count_trigger_schedule" {
+variable "sql_db_instances_with_low_cpu_utilization_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "The schedule on which to run the trigger if enabled."
 }
 
-variable "sql_db_instances_with_low_connection_count_default_action" {
+variable "sql_db_instances_with_low_cpu_utilization_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
   default     = "notify"
 }
 
-variable "sql_db_instances_with_low_connection_count_enabled_actions" {
+variable "sql_db_instances_with_low_cpu_utilization_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "delete_instance"]
+  default     = ["skip", "stop_sql_instance", "delete_instance"]
+}
+
+variable "alarm_threshold" {
+  type        = number
+  description = "The threshold for CPU utilization to trigger an alarm."
+  default     = 25
 }
