@@ -24,10 +24,10 @@ locals {
 }
 
 trigger "query" "detect_and_correct_sql_db_instances_with_low_cpu_utilization" {
-  title       = "Detect & correct SQL DB instances with low CPU utilization"
-  description = "Detects SQL DB instances with low CPU utilization and runs your chosen action."
-  // documentation = file("./sql/docs/detect_and_correct_sql_db_instances_with_low_cpu_utilization_trigger.md")
-  tags = merge(local.sql_common_tags, { class = "unused" })
+  title         = "Detect & correct SQL DB instances with low CPU utilization"
+  description   = "Detects SQL DB instances with low CPU utilization and runs your chosen action."
+  documentation = file("./sql/docs/detect_and_correct_sql_db_instances_with_low_cpu_utilization_trigger.md")
+  tags          = merge(local.sql_common_tags, { class = "unused" })
 
   enabled  = var.sql_db_instances_with_low_cpu_utilization_trigger_enabled
   schedule = var.sql_db_instances_with_low_cpu_utilization_trigger_schedule
@@ -43,10 +43,10 @@ trigger "query" "detect_and_correct_sql_db_instances_with_low_cpu_utilization" {
 }
 
 pipeline "detect_and_correct_sql_db_instances_with_low_cpu_utilization" {
-  title       = "Detect & correct SQL DB instances with low CPU utilization"
-  description = "Detects SQL DB instances with low CPU utilization and runs your chosen action."
-  // documentation = file("./sql/docs/detect_and_correct_sql_db_instances_with_low_cpu_utilization.md")
-  tags = merge(local.sql_common_tags, { class = "unused", type = "featured" })
+  title         = "Detect & correct SQL DB instances with low CPU utilization"
+  description   = "Detects SQL DB instances with low CPU utilization and runs your chosen action."
+  documentation = file("./sql/docs/detect_and_correct_sql_db_instances_with_low_cpu_utilization.md")
+  tags          = merge(local.sql_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
     type        = string
@@ -103,10 +103,10 @@ pipeline "detect_and_correct_sql_db_instances_with_low_cpu_utilization" {
 }
 
 pipeline "correct_sql_db_instances_with_low_cpu_utilization" {
-  title       = "Correct SQL DB instances with low CPU utilization"
-  description = "Runs corrective action on a collection of SQL DB instances with low CPU utilization."
-  // documentation = file("./sql/docs/correct_sql_db_instances_with_low_cpu_utilization.md")
-  tags = merge(local.sql_common_tags, { class = "unused" })
+  title         = "Correct SQL DB instances with low CPU utilization"
+  description   = "Runs corrective action on a collection of SQL DB instances with low CPU utilization."
+  documentation = file("./sql/docs/correct_sql_db_instances_with_low_cpu_utilization.md")
+  tags          = merge(local.sql_common_tags, { class = "unused" })
 
   param "items" {
     type = list(object({
@@ -172,10 +172,10 @@ pipeline "correct_sql_db_instances_with_low_cpu_utilization" {
 }
 
 pipeline "correct_one_sql_db_instance_with_low_cpu_utilization" {
-  title       = "Correct one SQL DB instance with low CPU utilization"
-  description = "Runs corrective action on a SQL DB instance with low CPU utilization."
-  // documentation = file("./sql/docs/correct_one_sql_db_instance_with_low_cpu_utilization.md")
-  tags = merge(local.sql_common_tags, { class = "unused" })
+  title         = "Correct one SQL DB instance with low CPU utilization"
+  description   = "Runs corrective action on a SQL DB instance with low CPU utilization."
+  documentation = file("./sql/docs/correct_one_sql_db_instance_with_low_cpu_utilization.md")
+  tags          = merge(local.sql_common_tags, { class = "unused" })
 
   param "instance_name" {
     type        = string
@@ -252,8 +252,8 @@ pipeline "correct_one_sql_db_instance_with_low_cpu_utilization" {
           style        = local.style_alert
           pipeline_ref = local.gcp_pipeline_stop_sql_instance
           pipeline_args = {
-            cred        = param.cred
-            project_id  = param.project
+            cred          = param.cred
+            project_id    = param.project
             instance_name = param.instance_name
           }
           success_msg = "Stopped SQL DB Instance ${param.instance_name}."
