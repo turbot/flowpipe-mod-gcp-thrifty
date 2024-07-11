@@ -54,4 +54,5 @@ locals {
   gcp_pipeline_set_machine_type           = gcp.pipeline.set_machine_type
   gcp_pipeline_update_node_group          = gcp.pipeline.update_node_group
   gcp_pipeline_delete_vpn_gateway         = gcp.pipeline.delete_vpn_gateway
+  gcp_pipeline_delete_dataproc_cluster    = gcp.pipeline.delete_dataproc_cluster
 }
