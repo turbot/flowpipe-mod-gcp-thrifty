@@ -1,8 +1,10 @@
 locals {
   compute_disks_if_unattached_query = <<-EOQ
     select
+      concat(name, ' [', location, '/', project, ']') as title,
       name as disk_name,
       project,
+      _ctx ->> 'connection_name' as cred,
       zone
     from
       gcp_compute_disk
@@ -98,6 +100,8 @@ pipeline "correct_compute_disks_if_unattached" {
 
   param "items" {
     type = list(object({
+      cred      = string
+      title     = string
       disk_name = string
       project   = string
       zone      = string
@@ -141,7 +145,7 @@ pipeline "correct_compute_disks_if_unattached" {
   }
 
   step "transform" "items_by_id" {
-    value = { for row in param.items : row.disk_name => row }
+    value = { for row in param.items : row.title => row }
   }
 
   step "pipeline" "correct_item" {
@@ -152,6 +156,8 @@ pipeline "correct_compute_disks_if_unattached" {
       disk_name          = each.value.disk_name
       project            = each.value.project
       zone               = each.value.zone
+      cred               = each.value.cred
+      title              = each.value.title
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -166,6 +172,11 @@ pipeline "correct_one_compute_disk_if_unattached" {
   description   = "Runs corrective action on an compute disk unattached."
   documentation = file("./compute/docs/correct_one_compute_disk_if_unattached.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
+
+  param "title" {
+    type        = string
+    description = "The title of the compute disk."
+  }
 
   param "disk_name" {
     type        = string
@@ -185,7 +196,6 @@ pipeline "correct_one_compute_disk_if_unattached" {
   param "cred" {
     type        = string
     description = local.description_credential
-    default     = "default"
   }
 
   param "notifier" {
@@ -224,7 +234,7 @@ pipeline "correct_one_compute_disk_if_unattached" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected compute disk ${param.disk_name} unattached."
+      detect_msg         = "Detected compute disk ${param.title} unattached."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -236,10 +246,10 @@ pipeline "correct_one_compute_disk_if_unattached" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped compute disk ${param.disk_name} unattached."
+            text     = "Skipped compute disk ${param.title} unattached."
           }
-          success_msg = "Skipped compute disk ${param.disk_name}."
-          error_msg   = "Error skipping compute disk ${param.disk_name}."
+          success_msg = "Skipped compute disk ${param.title}."
+          error_msg   = "Error skipping compute disk ${param.title}."
         },
         "delete_compute_disk" = {
           label        = "Delete Compute Disk"
@@ -252,8 +262,8 @@ pipeline "correct_one_compute_disk_if_unattached" {
             project_id = param.project
             cred       = param.cred
           }
-          success_msg = "Deleted compute disk ${param.disk_name}."
-          error_msg   = "Error deleting compute disk ${param.disk_name}."
+          success_msg = "Deleted compute disk ${param.title}."
+          error_msg   = "Error deleting compute disk ${param.title}."
         }
         "snapshot_and_delete_compute_disk" = {
           label        = "Snapshot & Delete Compute Disk"
@@ -266,8 +276,8 @@ pipeline "correct_one_compute_disk_if_unattached" {
             project   = param.project
             cred      = param.cred
           }
-          success_msg = "Snapshotted & Deleted compute disk ${param.disk_name}."
-          error_msg   = "Error snapshotting & deleting compute disk ${param.disk_name}."
+          success_msg = "Snapshotted & Deleted compute disk ${param.title}."
+          error_msg   = "Error snapshotting & deleting compute disk ${param.title}."
         }
       }
     }
@@ -296,7 +306,6 @@ pipeline "snapshot_and_delete_compute_disk" {
   param "cred" {
     type        = string
     description = local.description_credential
-    default     = "default"
   }
 
   step "pipeline" "create_compute_snapshot" {
@@ -304,7 +313,7 @@ pipeline "snapshot_and_delete_compute_disk" {
     args = {
       source_disk_name = param.disk_name
       source_disk_zone = param.zone
-      snapshot_name    = "snapshot-${param.disk_name}"
+      snapshot_name    = "snapshot-${param.title}"
       project_id       = param.project
       cred             = param.cred
     }

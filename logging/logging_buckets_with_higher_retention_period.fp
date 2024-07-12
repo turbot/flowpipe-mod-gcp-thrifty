@@ -1,9 +1,11 @@
 locals {
-  logging_bucket_higher_retention_period_query = <<-EOQ
+  logging_buckets_with_higher_retention_period_query = <<-EOQ
     select
+      concat(name, ' [', location, '/', project, ']') as title,
       name as bucket_name,
       location,
-      project
+      project,
+      _ctx ->> 'connection_name' as cred
     from
       gcp_logging_bucket
     where
@@ -21,7 +23,7 @@ trigger "query" "detect_and_correct_logging_buckets_with_high_retention" {
   enabled  = var.logging_buckets_with_high_retention_trigger_enabled
   schedule = var.logging_buckets_with_high_retention_trigger_schedule
   database = var.database
-  sql      = local.logging_bucket_higher_retention_period_query
+  sql      = local.logging_buckets_with_higher_retention_period_query
 
   capture "insert" {
     pipeline = pipeline.correct_logging_buckets_with_high_retention
@@ -81,7 +83,7 @@ pipeline "detect_and_correct_logging_buckets_with_high_retention" {
 
   step "query" "detect" {
     database = param.database
-    sql      = local.logging_bucket_higher_retention_period_query
+    sql      = local.logging_buckets_with_higher_retention_period_query
   }
 
   step "pipeline" "respond" {
@@ -109,7 +111,8 @@ pipeline "correct_logging_buckets_with_high_retention" {
       bucket_name = string
       location    = string
       project     = string
-
+      cred        = string
+      title       = string
     }))
   }
 
@@ -167,6 +170,8 @@ pipeline "correct_logging_buckets_with_high_retention" {
       bucket_name        = each.value.bucket_name
       location           = each.value.location
       project            = each.value.project
+      cred               = each.value.cred
+      title              = each.value.title
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -195,13 +200,17 @@ pipeline "correct_one_logging_bucket_with_high_retention" {
 
   param "project" {
     type        = string
-    description = "The project ID of the Logging Bucket."
+    description = local.description_project
+  }
+
+  param "title" {
+    type        = string
+    description = local.description_title
   }
 
   param "cred" {
     type        = string
     description = local.description_credential
-    default     = "default"
   }
 
   param "notifier" {
@@ -246,7 +255,7 @@ pipeline "correct_one_logging_bucket_with_high_retention" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected Logging Bucket ${param.bucket_name} with high retention period."
+      detect_msg         = "Detected Logging Bucket ${param.title} with high retention period."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -258,10 +267,10 @@ pipeline "correct_one_logging_bucket_with_high_retention" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped Logging Bucket ${param.bucket_name} with high retention period."
+            text     = "Skipped Logging Bucket ${param.title} with high retention period."
           }
-          success_msg = "Skipped Logging Bucket ${param.bucket_name}."
-          error_msg   = "Error skipping Logging Bucket ${param.bucket_name}."
+          success_msg = "Skipped Logging Bucket ${param.title}."
+          error_msg   = "Error skipping Logging Bucket ${param.title}."
         }
         update_retention = {
           label        = "Update Retention Period"
@@ -275,8 +284,8 @@ pipeline "correct_one_logging_bucket_with_high_retention" {
             cred           = param.cred
             retention_days = param.retention_days
           }
-          success_msg = "Updated retention period for Logging Bucket ${param.bucket_name}."
-          error_msg   = "Error updating retention period for Logging Bucket ${param.bucket_name}."
+          success_msg = "Updated retention period for Logging Bucket ${param.title}."
+          error_msg   = "Error updating retention period for Logging Bucket ${param.title}."
         }
       }
     }

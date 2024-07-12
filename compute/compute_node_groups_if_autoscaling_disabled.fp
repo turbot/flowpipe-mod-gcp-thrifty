@@ -1,42 +1,41 @@
 locals {
-  compute_instances_large_query = <<-EOQ
+  compute_node_groups_if_autoscaling_disabled_query = <<-EOQ
     select
       concat(name, ' [', zone, '/', project, ']') as title,
-      name as instance_name,
+      name,
       zone,
       _ctx ->> 'connection_name' as cred,
       project
     from
-      gcp_compute_instance
+      gcp_compute_node_group
     where
-      status in ('RUNNING', 'PROVISIONING', 'STAGING', 'REPAIRING')
-      and machine_type_name not like any (array[${join(",", formatlist("'%s'", var.compute_instances_large_allowed_types))}])
+      autoscaling_policy_mode <> 'ON';
   EOQ
 }
 
-trigger "query" "detect_and_correct_compute_instances_large" {
-  title         = "Detect & correct Compute Engine instances large"
-  description   = "Identifies large Compute Engine instances and executes the chosen action."
-  documentation = file("./compute/docs/detect_and_correct_compute_instances_large_trigger.md")
+trigger "query" "detect_and_correct_compute_node_groups_if_autoscaling_disabled" {
+  title         = "Detect & correct compute node groups if autoscaling disabled"
+  description   = "Detects compute node groups if autoscaling disabled and runs your chosen action."
+  documentation = file("./compute/docs/detect_and_correct_compute_node_groups_if_autoscaling_disabled_trigger.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
-  enabled  = var.compute_instances_large_trigger_enabled
-  schedule = var.compute_instances_large_trigger_schedule
+  enabled  = var.compute_node_groups_if_autoscaling_disabled_trigger_enabled
+  schedule = var.compute_node_groups_if_autoscaling_disabled_trigger_schedule
   database = var.database
-  sql      = local.compute_instances_large_query
+  sql      = local.compute_node_groups_if_autoscaling_disabled_query
 
   capture "insert" {
-    pipeline = pipeline.correct_compute_instances_large
+    pipeline = pipeline.correct_compute_node_groups_if_autoscaling_disabled
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_compute_instances_large" {
-  title         = "Detect & correct Compute Engine instances large"
-  description   = "Detects large Compute Engine instances and runs your chosen action."
-  documentation = file("./compute/docs/detect_and_correct_compute_instances_large.md")
+pipeline "detect_and_correct_compute_node_groups_if_autoscaling_disabled" {
+  title         = "Detect & correct compute node groups if autoscaling disabled"
+  description   = "Detects compute node groups if autoscaling disabled and runs your chosen action."
+  documentation = file("./compute/docs/detect_and_correct_compute_node_groups_if_autoscaling_disabled.md")
   tags          = merge(local.compute_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
@@ -66,22 +65,22 @@ pipeline "detect_and_correct_compute_instances_large" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.compute_instances_large_default_action
+    default     = var.compute_node_groups_if_autoscaling_disabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.compute_instances_large_enabled_actions
+    default     = var.compute_node_groups_if_autoscaling_disabled_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.compute_instances_large_query
+    sql      = local.compute_node_groups_if_autoscaling_disabled_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_compute_instances_large
+    pipeline = pipeline.correct_compute_node_groups_if_autoscaling_disabled
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -93,19 +92,19 @@ pipeline "detect_and_correct_compute_instances_large" {
   }
 }
 
-pipeline "correct_compute_instances_large" {
-  title         = "Correct Compute Engine instances large"
-  description   = "Executes corrective actions on large Compute Engine instances."
-  documentation = file("./compute/docs/correct_compute_instances_large.md")
+pipeline "correct_compute_node_groups_if_autoscaling_disabled" {
+  title         = "Correct compute node groups if autoscaling disabled"
+  description   = "Runs corrective action on a collection of compute node groups if autoscaling disabled."
+  documentation = file("./compute/docs/correct_compute_node_groups_if_autoscaling_disabled.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
   param "items" {
     type = list(object({
-      title         = string
-      cred          = string
-      instance_name = string
-      zone          = string
-      project       = string
+      name    = string
+      project = string
+      zone    = string
+      cred    = string
+      title   = string
     }))
   }
 
@@ -130,19 +129,19 @@ pipeline "correct_compute_instances_large" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.compute_instances_large_default_action
+    default     = var.compute_node_groups_if_autoscaling_disabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.compute_instances_large_enabled_actions
+    default     = var.compute_node_groups_if_autoscaling_disabled_enabled_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} large Compute Engine instances."
+    text     = "Detected ${length(param.items)} compute node group autoscaling disabled."
   }
 
   step "transform" "items_by_id" {
@@ -152,13 +151,13 @@ pipeline "correct_compute_instances_large" {
   step "pipeline" "correct_item" {
     for_each        = step.transform.items_by_id.value
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_compute_instance_large
+    pipeline        = pipeline.correct_one_compute_node_group_if_autoscaling_disabled
     args = {
-      instance_name      = each.value.instance_name
-      zone               = each.value.zone
-      cred               = each.value.cred
-      title              = each.value.title
+      name               = each.value.name
       project            = each.value.project
+      title              = each.value.title
+      cred               = each.value.cred
+      zone               = each.value.zone
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -168,25 +167,26 @@ pipeline "correct_compute_instances_large" {
   }
 }
 
-pipeline "correct_one_compute_instance_large" {
-  title         = "Correct one Compute Engine instance large"
-  description   = "Runs corrective action on a single large Compute Engine instance."
-  documentation = file("./compute/docs/correct_one_compute_instance_large.md")
+pipeline "correct_one_compute_node_group_if_autoscaling_disabled" {
+  title         = "Correct one compute node group if autoscaling disabled"
+  description   = "Runs corrective action on an compute node group autoscaling disabled."
+  documentation = file("./compute/docs/correct_one_compute_node_group_if_autoscaling_disabled.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
-  param "cred" {
+  param "name" {
     type        = string
-    description = local.description_credential
+    description = "Compute Node Group Name."
   }
 
-  param "title" {
-    type        = string
-    description = local.description_title
+  param "max_nodes" {
+    type        = number
+    description = "Maximum number of nodes."
+    default     = var.compute_node_group_max_nodes
   }
 
-  param "instance_name" {
+  param "project" {
     type        = string
-    description = "The name of the Compute Engine instance."
+    description = local.description_project
   }
 
   param "zone" {
@@ -194,9 +194,14 @@ pipeline "correct_one_compute_instance_large" {
     description = local.description_zone
   }
 
-  param "project" {
+  param "title" {
     type        = string
-    description = local.description_project
+    description = local.description_title
+  }
+
+  param "cred" {
+    type        = string
+    description = local.description_credential
   }
 
   param "notifier" {
@@ -220,13 +225,13 @@ pipeline "correct_one_compute_instance_large" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.compute_instances_large_default_action
+    default     = var.compute_node_groups_if_autoscaling_disabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.compute_instances_large_enabled_actions
+    default     = var.compute_node_groups_if_autoscaling_disabled_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -235,7 +240,7 @@ pipeline "correct_one_compute_instance_large" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected large Compute Engine Instance ${param.title}."
+      detect_msg         = "Detected compute node group ${param.title} autoscaling disabled."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -247,70 +252,58 @@ pipeline "correct_one_compute_instance_large" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped large Compute Engine Instance ${param.title}."
+            text     = "Skipped compute node group ${param.title} autoscaling disabled."
           }
-          success_msg = "Skipped Compute Engine Instance ${param.title}."
-          error_msg   = "Error skipping Compute Engine Instance ${param.title}."
+          success_msg = "Skipped compute node group ${param.title}."
+          error_msg   = "Error skipping compute node group ${param.title}."
         },
-        "stop_instance" = {
-          label        = "Stop instance"
-          value        = "stop_instance"
+        "enable_autoscaling_policy" = {
+          label        = "Enable Autoscaling Policy"
+          value        = "enable_autoscaling_policy"
           style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_stop_compute_instance
+          pipeline_ref = local.gcp_pipeline_update_node_group
           pipeline_args = {
-            instance_name = param.instance_name
-            zone          = param.zone
-            project_id    = param.project
-            cred          = param.cred
+            autoscaler_mode = "on"
+            max_nodes       = param.max_nodes
+            node_group_name = param.name
+            project_id      = param.project
+            zone            = param.zone
+            cred            = param.cred
           }
-          success_msg = "Stopped Compute Engine Instance ${param.title}."
-          error_msg   = "Error stopping Compute Engine Instance ${param.title}."
-        },
-        "terminate_instance" = {
-          label        = "Terminate Instance"
-          value        = "terminate_instance"
-          style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_terminate_compute_instance
-          pipeline_args = {
-            instance_name = param.instance_name
-            zone          = param.zone
-            project_id    = param.project
-            cred          = param.cred
-          }
-          success_msg = "Deleted Compute Engine Instance ${param.title}."
-          error_msg   = "Error deleting Compute Engine Instance ${param.title}."
+          success_msg = "Enabled autoscaling policy for compute node group ${param.title}."
+          error_msg   = "Error enabling autoscaling policy for compute node group ${param.title}."
         }
       }
     }
   }
 }
 
-variable "compute_instances_large_trigger_enabled" {
+variable "compute_node_group_max_nodes" {
+  type        = number
+  description = "The maximum number of nodes to set for the autoscaler."
+  default     = 10
+}
+
+variable "compute_node_groups_if_autoscaling_disabled_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
 }
 
-variable "compute_instances_large_trigger_schedule" {
+variable "compute_node_groups_if_autoscaling_disabled_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "The schedule on which to run the trigger if enabled."
 }
 
-variable "compute_instances_large_allowed_types" {
-  type        = list(string)
-  description = "A list of allowed instance types. PostgreSQL wildcards are supported."
-  default     = ["custom-1-1024", "custom-2-2048", "custom-4-4096", "custom-8-8192", "custom-16-16384", "custom-32-32768", "custom-64-65536", "custom-96-98304", "custom-128-131072", "custom-224-229376"]
-}
-
-variable "compute_instances_large_default_action" {
+variable "compute_node_groups_if_autoscaling_disabled_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
   default     = "notify"
 }
 
-variable "compute_instances_large_enabled_actions" {
+variable "compute_node_groups_if_autoscaling_disabled_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "stop_instance", "terminate_instance"]
+  default     = ["skip", "enable_autoscaling_policy"]
 }

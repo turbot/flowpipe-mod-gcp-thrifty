@@ -13,8 +13,10 @@ locals {
         name
     )
     select
+      concat(i.name, ' [', i.zone, '/', i.project, ']') as title,
       i.name as instance_name,
       i.project as project,
+      i._ctx ->> 'connection_name' as cred,
       i.zone as zone
     from
       gcp_compute_instance as i
@@ -114,6 +116,8 @@ pipeline "correct_compute_instances_with_low_utilization" {
       instance_name = string
       project       = string
       zone          = string
+      cred          = string
+      title         = string
     }))
   }
 
@@ -165,6 +169,8 @@ pipeline "correct_compute_instances_with_low_utilization" {
       instance_name      = each.value.instance_name
       project            = each.value.project
       zone               = each.value.zone
+      cred               = each.value.cred
+      title              = each.value.title
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -204,7 +210,11 @@ pipeline "correct_one_compute_instance_with_low_utilization" {
   param "cred" {
     type        = string
     description = local.description_credential
-    default     = "default"
+  }
+
+  param "title" {
+    type        = string
+    description = local.description_title
   }
 
   param "notifier" {
@@ -255,10 +265,10 @@ pipeline "correct_one_compute_instance_with_low_utilization" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped Compute instance ${param.instance_name} with low utilization."
+            text     = "Skipped Compute instance ${param.title} with low utilization."
           }
-          success_msg = "Skipping Compute instance ${param.instance_name}."
-          error_msg   = "Error skipping Compute instance ${param.instance_name}."
+          success_msg = "Skipping Compute instance ${param.title}."
+          error_msg   = "Error skipping Compute instance ${param.title}."
         },
         "stop_downgrade_instance_type" = {
           label        = "Stop & downgrade instance type"
@@ -272,8 +282,8 @@ pipeline "correct_one_compute_instance_with_low_utilization" {
             zone          = param.zone
             cred          = param.cred
           }
-          success_msg = "Stopped Compute instance ${param.instance_name} and downgraded instance type."
-          error_msg   = "Error stopping Compute instance ${param.instance_name} and downgrading instance type."
+          success_msg = "Stopped Compute instance ${param.title} and downgraded instance type."
+          error_msg   = "Error stopping Compute instance ${param.title} and downgrading instance type."
         },
         "stop_instance" = {
           label        = "Stop Instance"
@@ -286,8 +296,8 @@ pipeline "correct_one_compute_instance_with_low_utilization" {
             zone          = param.zone
             cred          = param.cred
           }
-          success_msg = "Stopped Compute instance ${param.instance_name}."
-          error_msg   = "Error stopping Compute instance ${param.instance_name}."
+          success_msg = "Stopped Compute instance ${param.title}."
+          error_msg   = "Error stopping Compute instance ${param.title}."
         }
       }
     }
@@ -321,7 +331,11 @@ pipeline "stop_downgrade_compute_instance" {
   param "cred" {
     type        = string
     description = local.description_credential
-    default     = "default"
+  }
+
+  param "title" {
+    type        = string
+    description = local.description_title
   }
 
   step "pipeline" "stop_compute_instance" {

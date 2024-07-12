@@ -1,9 +1,11 @@
 locals {
   compute_disks_attached_to_stopped_instances_query = <<-EOQ
     select
+      concat(d.name, ' [', d.zone, '/', d.project, ']') as title,
       d.name as disk_name,
       d.zone as zone,
       d.project as project,
+      d._ctx ->> 'connection_name' as cred,
       i.name as instance_name
     from
       gcp_compute_disk as d
@@ -105,6 +107,8 @@ pipeline "correct_compute_disks_attached_to_stopped_instances" {
       zone          = string
       instance_name = string
       project       = string
+      cred          = string
+      title         = string
     }))
   }
 
@@ -145,7 +149,7 @@ pipeline "correct_compute_disks_attached_to_stopped_instances" {
   }
 
   step "transform" "items_by_id" {
-    value = { for row in param.items : row.disk_name => row }
+    value = { for row in param.items : row.title => row }
   }
 
   step "pipeline" "correct_item" {
@@ -157,6 +161,8 @@ pipeline "correct_compute_disks_attached_to_stopped_instances" {
       project            = each.value.project
       zone               = each.value.zone
       instance_name      = each.value.instance_name
+      cred               = each.value.cred
+      title              = each.value.title
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -192,10 +198,14 @@ pipeline "correct_one_compute_disk_attached_to_stopped_instance" {
     description = "The name of the instance to which the disk is attached."
   }
 
+  param "title" {
+    type        = string
+    description = local.description_title
+  }
+
   param "cred" {
     type        = string
     description = local.description_credential
-    default     = "default"
   }
 
   param "notifier" {
@@ -328,7 +338,6 @@ pipeline "detach_and_delete_compute_disk" {
   param "cred" {
     type        = string
     description = local.description_credential
-    default     = "default"
   }
 
   step "pipeline" "detach_compute_disk" {

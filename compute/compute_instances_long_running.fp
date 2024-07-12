@@ -1,8 +1,10 @@
 locals {
   compute_instance_long_running_query = <<-EOQ
     select
+      concat(name, ' [', zone, '/', project, ']') as title,
       name as instance_name,
       zone,
+      _ctx ->> 'connection_name' as cred,
       project
     from
       gcp_compute_instance
@@ -13,10 +15,10 @@ locals {
 }
 
 trigger "query" "detect_and_correct_compute_instance_long_running" {
-  title       = "Detect & correct long-running Compute Engine instances"
-  description = "Identifies long-running Compute Engine instances and executes the chosen action."
-  documentation = file("./compute/docs/detect_and_correct_compute_instance_long_running_trigger.md")
-  tags = merge(local.compute_common_tags, { class = "unused" })
+  title         = "Detect & correct long-running Compute Engine instances"
+  description   = "Identifies long-running Compute Engine instances and executes the chosen action."
+  documentation = file("./compute/docs/detect_and_correct_compute_instances_long_running_trigger.md")
+  tags          = merge(local.compute_common_tags, { class = "unused" })
 
   enabled  = var.compute_instances_long_running_trigger_enabled
   schedule = var.compute_instances_long_running_trigger_schedule
@@ -32,10 +34,10 @@ trigger "query" "detect_and_correct_compute_instance_long_running" {
 }
 
 pipeline "detect_and_correct_compute_instance_long_running" {
-  title       = "Detect & correct long-running Compute Engine instances"
-  description = "Detects long-running Compute Engine instances and runs your chosen action."
-  documentation = file("./compute/docs/detect_and_correct_compute_instance_long_running.md")
-  tags = merge(local.compute_common_tags, { class = "unused", type = "featured" })
+  title         = "Detect & correct long-running Compute Engine instances"
+  description   = "Detects long-running Compute Engine instances and runs your chosen action."
+  documentation = file("./compute/docs/detect_and_correct_compute_instances_long_running.md")
+  tags          = merge(local.compute_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
     type        = string
@@ -92,13 +94,15 @@ pipeline "detect_and_correct_compute_instance_long_running" {
 }
 
 pipeline "correct_compute_instance_long_running" {
-  title       = "Correct long-running Compute Engine instances"
-  description = "Executes corrective actions on long-running Compute Engine instances."
+  title         = "Correct long-running Compute Engine instances"
+  description   = "Executes corrective actions on long-running Compute Engine instances."
   documentation = file("./compute/docs/correct_compute_instance_long_running.md")
-  tags = merge(local.compute_common_tags, { class = "unused" })
+  tags          = merge(local.compute_common_tags, { class = "unused" })
 
   param "items" {
     type = list(object({
+      title         = string
+      cred          = string
       instance_name = string
       zone          = string
       project       = string
@@ -142,7 +146,7 @@ pipeline "correct_compute_instance_long_running" {
   }
 
   step "transform" "items_by_id" {
-    value = { for row in param.items : row.instance_name => row }
+    value = { for row in param.items : row.title => row }
   }
 
   step "pipeline" "correct_item" {
@@ -153,6 +157,8 @@ pipeline "correct_compute_instance_long_running" {
       instance_name      = each.value.instance_name
       zone               = each.value.zone
       project            = each.value.project
+      cred               = each.value.cred
+      title              = each.value.title
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -163,15 +169,19 @@ pipeline "correct_compute_instance_long_running" {
 }
 
 pipeline "correct_one_compute_instance_long_running" {
-  title       = "Correct one long-running Compute Engine instance"
-  description = "Runs corrective action on a single long-running Compute Engine instance."
+  title         = "Correct one long-running Compute Engine instance"
+  description   = "Runs corrective action on a single long-running Compute Engine instance."
   documentation = file("./compute/docs/correct_one_compute_instance_long_running.md")
-  tags = merge(local.compute_common_tags, { class = "unused" })
+  tags          = merge(local.compute_common_tags, { class = "unused" })
 
   param "cred" {
     type        = string
     description = local.description_credential
-    default     = "default"
+  }
+
+  param "title" {
+    type        = string
+    description = local.description_title
   }
 
   param "instance_name" {
@@ -186,7 +196,7 @@ pipeline "correct_one_compute_instance_long_running" {
 
   param "project" {
     type        = string
-    description = "The project ID of the Compute Engine instance."
+    description = local.description_project
   }
 
   param "notifier" {
@@ -225,7 +235,7 @@ pipeline "correct_one_compute_instance_long_running" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected long-running Compute Engine Instance ${param.instance_name}."
+      detect_msg         = "Detected long-running Compute Engine Instance ${param.title}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -237,10 +247,10 @@ pipeline "correct_one_compute_instance_long_running" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped long-running Compute Engine Instance ${param.instance_name}."
+            text     = "Skipped long-running Compute Engine Instance ${param.title}."
           }
-          success_msg = "Skipped Compute Engine Instance ${param.instance_name}."
-          error_msg   = "Error skipping Compute Engine Instance ${param.instance_name}."
+          success_msg = "Skipped Compute Engine Instance ${param.title}."
+          error_msg   = "Error skipping Compute Engine Instance ${param.title}."
         },
         "stop_instance" = {
           label        = "Stop instance"
@@ -253,8 +263,8 @@ pipeline "correct_one_compute_instance_long_running" {
             project_id    = param.project
             cred          = param.cred
           }
-          success_msg = "Stopped Compute Engine Instance ${param.instance_name}."
-          error_msg   = "Error stopping Compute Engine Instance ${param.instance_name}."
+          success_msg = "Stopped Compute Engine Instance ${param.title}."
+          error_msg   = "Error stopping Compute Engine Instance ${param.title}."
         },
         "terminate_instance" = {
           label        = "Terminate Instance"
@@ -267,8 +277,8 @@ pipeline "correct_one_compute_instance_long_running" {
             project_id    = param.project
             cred          = param.cred
           }
-          success_msg = "Deleted Compute Engine Instance ${param.instance_name}."
-          error_msg   = "Error deleting Compute Engine Instance ${param.instance_name}."
+          success_msg = "Deleted Compute Engine Instance ${param.title}."
+          error_msg   = "Error deleting Compute Engine Instance ${param.title}."
         }
       }
     }

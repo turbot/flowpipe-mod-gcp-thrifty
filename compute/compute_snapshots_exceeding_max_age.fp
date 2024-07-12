@@ -1,7 +1,9 @@
 locals {
   compute_snapshots_exceeding_max_age_query = <<-EOQ
   select
+    concat(name, ' [', location, '/', project, ']') as title,
     name,
+    _ctx ->> 'connection_name' as cred,
     project
   from
     gcp_compute_snapshot
@@ -100,6 +102,7 @@ pipeline "correct_compute_snapshots_exceeding_max_age" {
       title   = string
       name    = string
       project = string
+      cred    = string
     }))
     description = local.description_items
   }
@@ -141,7 +144,7 @@ pipeline "correct_compute_snapshots_exceeding_max_age" {
   }
 
   step "transform" "items_by_id" {
-    value = { for row in param.items : row.name => row }
+    value = { for row in param.items : row.title => row }
   }
 
   step "pipeline" "correct_item" {
@@ -151,6 +154,8 @@ pipeline "correct_compute_snapshots_exceeding_max_age" {
     args = {
       name               = each.value.name
       project            = each.value.project
+      cred               = each.value.cred
+      title              = each.value.title
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -176,10 +181,14 @@ pipeline "correct_one_compute_snapshot_exceeding_max_age" {
     description = local.description_project
   }
 
+  param "title" {
+    type        = string
+    description = "The title of the Compute snapshot."
+  }
+
   param "cred" {
     type        = string
     description = local.description_credential
-    default     = "default"
   }
 
   param "notifier" {
@@ -218,7 +227,7 @@ pipeline "correct_one_compute_snapshot_exceeding_max_age" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected Compute snapshot ${param.name} exceeding maximum age."
+      detect_msg         = "Detected Compute snapshot ${param.title} exceeding maximum age."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -230,7 +239,7 @@ pipeline "correct_one_compute_snapshot_exceeding_max_age" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped Compute snapshot ${param.name} exceeding maximum age."
+            text     = "Skipped Compute snapshot ${param.title} exceeding maximum age."
           }
           success_msg = ""
           error_msg   = ""
@@ -245,8 +254,8 @@ pipeline "correct_one_compute_snapshot_exceeding_max_age" {
             project_id    = param.project
             cred          = param.cred
           }
-          success_msg = "Deleted Compute snapshot ${param.name}."
-          error_msg   = "Error deleting Compute snapshot ${param.name}."
+          success_msg = "Deleted Compute snapshot ${param.title}."
+          error_msg   = "Error deleting Compute snapshot ${param.title}."
         }
       }
     }
@@ -274,7 +283,7 @@ variable "compute_snapshots_exceeding_max_age_default_action" {
 variable "compute_snapshots_exceeding_max_age_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions to provide to approvers for selection."
-  default     = ["skip","delete_snapshot"]
+  default     = ["skip", "delete_snapshot"]
 }
 
 variable "compute_snapshots_exceeding_max_age_days" {
