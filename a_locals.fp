@@ -56,4 +56,5 @@ locals {
   gcp_pipeline_delete_vpn_gateway         = gcp.pipeline.delete_vpn_gateway
   gcp_pipeline_delete_dataproc_cluster    = gcp.pipeline.delete_dataproc_cluster
   gcp_pipeline_delete_storage_buckets     = gcp.pipeline.delete_storage_buckets
+  gcp_pipeline_delete_kubernetes_cluster  = gcp.pipeline.delete_kubernetes_cluster
 }
