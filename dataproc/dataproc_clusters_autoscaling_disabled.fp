@@ -16,7 +16,7 @@ trigger "query" "detect_and_correct_dataproc_clusters_autoscaling_disabled" {
   title         = "Detect & correct Dataproc clusters without autoscaling"
   description   = "Identifies Dataproc clusters without autoscaling enabled and executes the chosen action."
   documentation = file("./dataproc/docs/detect_and_correct_dataproc_clusters_autoscaling_disabled_trigger.md")
-  // tags          = merge(local.dataproc_common_tags, { class = "unused" })
+  tags          = merge(local.dataproc_common_tags, { class = "unused" })
 
   enabled  = var.dataproc_clusters_autoscaling_disabled_trigger_enabled
   schedule = var.dataproc_clusters_autoscaling_disabled_trigger_schedule
@@ -35,7 +35,7 @@ pipeline "detect_and_correct_dataproc_clusters_autoscaling_disabled" {
   title         = "Detect & correct Dataproc clusters without autoscaling"
   description   = "Detects Dataproc clusters without autoscaling enabled and runs your chosen action."
   documentation = file("./dataproc/docs/detect_and_correct_dataproc_clusters_autoscaling_disabled.md")
-  // tags          = merge(local.dataproc_common_tags, { class = "unused" })
+  tags          = merge(local.dataproc_common_tags, { class = "unused" })
   param "database" {
     type        = string
     description = local.description_database
@@ -94,7 +94,7 @@ pipeline "correct_dataproc_clusters_autoscaling_disabled" {
   title         = "Correct Dataproc clusters without autoscaling"
   description   = "Executes corrective actions on Dataproc clusters without autoscaling enabled."
   documentation = file("./dataproc/docs/correct_dataproc_clusters_autoscaling_disabled.md")
-  // tags          = merge(local.dataproc_common_tags, { class = "unused" })
+  tags          = merge(local.dataproc_common_tags, { class = "unused" })
 
   param "items" {
     type = list(object({
@@ -163,7 +163,7 @@ pipeline "correct_one_dataproc_cluster_autoscaling_disabled" {
   title         = "Correct one Dataproc cluster without autoscaling"
   description   = "Runs corrective action on a single Dataproc cluster without autoscaling enabled."
   documentation = file("./dataproc/docs/correct_one_dataproc_cluster_autoscaling_disabled.md")
-  // tags          = merge(local.dataproc_common_tags, { class = "unused" })
+  tags          = merge(local.dataproc_common_tags, { class = "unused" })
 
   param "cred" {
     type        = string
@@ -278,7 +278,7 @@ variable "dataproc_clusters_autoscaling_disabled_trigger_schedule" {
 variable "dataproc_clusters_autoscaling_disabled_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
-  default     = "delete_dataproc_cluster_with_autoscaling_disabled"
+  default     = "notify"
 }
 
 variable "dataproc_clusters_autoscaling_disabled_enabled_actions" {

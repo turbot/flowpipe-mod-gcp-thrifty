@@ -36,7 +36,7 @@ pipeline "detect_and_correct_vpn_gateways_with_no_tunnels" {
   title         = "Detect & correct VPN gateways with no tunnels"
   description   = "Detect VPN gateways with no tunnels attached and run your chosen action."
   documentation = file("./network/docs/detect_and_correct_vpn_gateways_with_no_tunnels.md")
-  // tags          = merge(local.network_common_tags, { class = "unused", type = "featured" })
+  // tags          = merge(local.network_common_tags, { class = "unused"})
 
   param "database" {
     type        = string

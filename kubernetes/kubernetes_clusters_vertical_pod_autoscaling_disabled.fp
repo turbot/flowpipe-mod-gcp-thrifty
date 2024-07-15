@@ -17,7 +17,7 @@ trigger "query" "detect_and_correct_kubernetes_clusters_vertical_pod_autoscaling
   title         = "Detect & correct GKE clusters without vertical pod autoscaling"
   description   = "Identifies GKE clusters without vertical pod autoscaling enabled and executes the chosen action."
   documentation = file("./kubernetes/docs/detect_and_correct_kubernetes_clusters_vertical_pod_autoscaling_disabled_trigger.md")
-  // tags          = merge(local.kubernetes_common_tags, { class = "unused" })
+  tags          = merge(local.kubernetes_common_tags, { class = "unused" })
 
   enabled  = var.kubernetes_clusters_vertical_pod_autoscaling_disabled_trigger_enabled
   schedule = var.kubernetes_clusters_vertical_pod_autoscaling_disabled_trigger_schedule
@@ -36,6 +36,7 @@ pipeline "detect_and_correct_kubernetes_clusters_vertical_pod_autoscaling_disabl
   title         = "Detect & correct GKE clusters without vertical pod autoscaling"
   description   = "Detects GKE clusters without vertical pod autoscaling enabled and runs your chosen action."
   documentation = file("./kubernetes/docs/detect_and_correct_kubernetes_clusters_vertical_pod_autoscaling_disabled.md")
+  tags          = merge(local.kubernetes_common_tags, { class = "unused" })
 
   param "database" {
     type        = string
@@ -95,6 +96,7 @@ pipeline "correct_kubernetes_clusters_vertical_pod_autoscaling_disabled" {
   title         = "Correct GKE clusters without vertical pod autoscaling"
   description   = "Executes corrective actions on GKE clusters without vertical pod autoscaling enabled."
   documentation = file("./kubernetes/docs/correct_kubernetes_clusters_vertical_pod_autoscaling_disabled_pipeline.md")
+  tags          = merge(local.kubernetes_common_tags, { class = "unused" })
 
   param "items" {
     type = list(object({
@@ -165,6 +167,7 @@ pipeline "correct_one_kubernetes_cluster_vertical_pod_autoscaling_disabled" {
   title         = "Correct one GKE cluster without vertical pod autoscaling"
   description   = "Runs corrective action on a single GKE cluster without vertical pod autoscaling enabled."
   documentation = file("./kubernetes/docs/correct_one_kubernetes_cluster_vertical_pod_autoscaling_disabled_pipeline.md")
+  tags          = merge(local.kubernetes_common_tags, { class = "unused" })
 
   param "cred" {
     type        = string
@@ -278,7 +281,7 @@ variable "kubernetes_clusters_vertical_pod_autoscaling_disabled_trigger_schedule
 variable "kubernetes_clusters_vertical_pod_autoscaling_disabled_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
-  default     = "delete_kubernetes_cluster"
+  default     = "notify"
 }
 
 variable "kubernetes_clusters_vertical_pod_autoscaling_disabled_enabled_actions" {

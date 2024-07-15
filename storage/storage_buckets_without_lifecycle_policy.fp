@@ -35,6 +35,7 @@ pipeline "detect_and_correct_storage_buckets_without_lifecycle_policy" {
   title         = "Detect & correct Storage buckets without lifecycle policies"
   description   = "Detects Storage buckets without lifecycle policies and runs your chosen action."
   documentation = file("./storage/docs/detect_and_correct_storage_buckets_without_lifecycle_policy.md")
+  tags          = merge(local.storage_common_tags, { class = "unused" })
 
   param "database" {
     type        = string
@@ -94,6 +95,7 @@ pipeline "correct_storage_buckets_without_lifecycle_policy" {
   title         = "Correct Storage buckets without lifecycle policies"
   description   = "Executes corrective actions on Storage buckets without lifecycle policies."
   documentation = file("./storage/docs/correct_storage_buckets_without_lifecycle_policy.md")
+  tags          = merge(local.storage_common_tags, { class = "unused" })
 
   param "items" {
     type = list(object({
@@ -162,6 +164,7 @@ pipeline "correct_one_storage_bucket_without_lifecycle_policy" {
   title         = "Correct one Storage bucket without lifecycle policies"
   description   = "Runs corrective action on a single Storage bucket without lifecycle policies."
   documentation = file("./storage/docs/correct_one_storage_bucket_without_lifecycle_policy.md")
+  tags          = merge(local.storage_common_tags, { class = "unused" })
 
   param "cred" {
     type        = string
@@ -288,5 +291,5 @@ variable "storage_buckets_without_lifecycle_policy_default_action" {
 variable "storage_buckets_without_lifecycle_policy_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "delete_storage_bucket","delete_all_objects_and_storage_bucket"]
+  default     = ["skip", "delete_storage_bucket", "delete_all_objects_and_storage_bucket"]
 }
