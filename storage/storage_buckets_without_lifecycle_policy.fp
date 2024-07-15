@@ -236,6 +236,19 @@ pipeline "correct_one_storage_bucket_without_lifecycle_policy" {
           success_msg = "Skipped Storage bucket ${param.title}."
           error_msg   = "Error skipping Storage bucket ${param.title}."
         },
+        "delete_all_objects_and_storage_bucket" = {
+          label        = "Delete All Objects and Storage Bucket"
+          value        = "delete_all_objects_and_storage_bucket"
+          style        = local.style_alert
+          pipeline_ref = local.gcp_pipeline_delete_all_objects_and_storage_bucket
+          pipeline_args = {
+            bucket_url = "gs://${param.name}"
+            project_id = param.project
+            cred       = param.cred
+          }
+          success_msg = "Deleted all objects and Storage bucket ${param.title}."
+          error_msg   = "Error deleting all objects and Storage bucket ${param.title}."
+        },
         "delete_storage_bucket" = {
           label        = "Delete Storage Bucket"
           value        = "delete_storage_bucket"
@@ -275,5 +288,5 @@ variable "storage_buckets_without_lifecycle_policy_default_action" {
 variable "storage_buckets_without_lifecycle_policy_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "delete_storage_bucket"]
+  default     = ["skip", "delete_storage_bucket","delete_all_objects_and_storage_bucket"]
 }
