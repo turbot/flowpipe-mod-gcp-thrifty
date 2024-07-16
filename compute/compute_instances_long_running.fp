@@ -300,7 +300,7 @@ variable "compute_instances_long_running_trigger_schedule" {
 variable "compute_instances_exceeding_max_age_days" {
   type        = number
   description = "The maximum age (in days) for an instance to be considered long-running."
-  default     = 1
+  default     = 30
 }
 
 variable "compute_instances_long_running_default_action" {
