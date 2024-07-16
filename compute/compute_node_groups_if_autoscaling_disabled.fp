@@ -261,7 +261,7 @@ pipeline "correct_one_compute_node_group_if_autoscaling_disabled" {
           label        = "Enable Autoscaling Policy"
           value        = "enable_autoscaling_policy"
           style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_update_node_group
+          pipeline_ref = local.gcp_pipeline_update_compute_node_group
           pipeline_args = {
             autoscaler_mode = "on"
             max_nodes       = param.max_nodes
