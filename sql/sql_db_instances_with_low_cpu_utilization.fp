@@ -26,8 +26,8 @@ locals {
 }
 
 trigger "query" "detect_and_correct_sql_db_instances_with_low_cpu_utilization" {
-  title         = "Detect & correct SQL DB instances with low CPU utilization"
-  description   = "Detects SQL DB instances with low CPU utilization and runs your chosen action."
+  title         = "Detect & correct SQL DB instances with low cpu utilization"
+  description   = "Detects SQL DB instances with low cpu utilization and runs your chosen action."
   documentation = file("./sql/docs/detect_and_correct_sql_db_instances_with_low_cpu_utilization_trigger.md")
   tags          = merge(local.sql_common_tags, { class = "unused" })
 
@@ -45,8 +45,8 @@ trigger "query" "detect_and_correct_sql_db_instances_with_low_cpu_utilization" {
 }
 
 pipeline "detect_and_correct_sql_db_instances_with_low_cpu_utilization" {
-  title         = "Detect & correct SQL DB instances with low CPU utilization"
-  description   = "Detects SQL DB instances with low CPU utilization and runs your chosen action."
+  title         = "Detect & correct SQL DB instances with low cpu utilization"
+  description   = "Detects SQL DB instances with low cpu utilization and runs your chosen action."
   documentation = file("./sql/docs/detect_and_correct_sql_db_instances_with_low_cpu_utilization.md")
   tags          = merge(local.sql_common_tags, { class = "unused", type = "featured" })
 
@@ -105,8 +105,8 @@ pipeline "detect_and_correct_sql_db_instances_with_low_cpu_utilization" {
 }
 
 pipeline "correct_sql_db_instances_with_low_cpu_utilization" {
-  title         = "Correct SQL DB instances with low CPU utilization"
-  description   = "Runs corrective action on a collection of SQL DB instances with low CPU utilization."
+  title         = "Correct SQL DB instances with low cpu utilization"
+  description   = "Runs corrective action on a collection of SQL DB instances with low cpu utilization."
   documentation = file("./sql/docs/correct_sql_db_instances_with_low_cpu_utilization.md")
   tags          = merge(local.sql_common_tags, { class = "unused" })
 
@@ -152,7 +152,7 @@ pipeline "correct_sql_db_instances_with_low_cpu_utilization" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} SQL DB instances with low CPU utilization."
+    text     = "Detected ${length(param.items)} SQL DB instances with low cpu utilization."
   }
 
   step "transform" "items_by_id" {
@@ -178,8 +178,8 @@ pipeline "correct_sql_db_instances_with_low_cpu_utilization" {
 }
 
 pipeline "correct_one_sql_db_instance_with_low_cpu_utilization" {
-  title         = "Correct one SQL DB instance with low CPU utilization"
-  description   = "Runs corrective action on a SQL DB instance with low CPU utilization."
+  title         = "Correct one SQL DB instance with low cpu utilization"
+  description   = "Runs corrective action on a SQL DB instance with low cpu utilization."
   documentation = file("./sql/docs/correct_one_sql_db_instance_with_low_cpu_utilization.md")
   tags          = merge(local.sql_common_tags, { class = "unused" })
 
@@ -239,7 +239,7 @@ pipeline "correct_one_sql_db_instance_with_low_cpu_utilization" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected SQL DB instance ${param.title} with low CPU utilization."
+      detect_msg         = "Detected SQL DB instance ${param.title} with low cpu utilization."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -251,10 +251,10 @@ pipeline "correct_one_sql_db_instance_with_low_cpu_utilization" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped SQL DB Instance ${param.title} with low CPU utilization."
+            text     = "Skipped SQL DB instance ${param.title} with low cpu utilization."
           }
-          success_msg = "Skipped SQL DB Instance ${param.title}."
-          error_msg   = "Error skipping SQL DB Instance ${param.title}."
+          success_msg = "Skipped SQL DB instance ${param.title}."
+          error_msg   = "Error skipping SQL DB instance ${param.title}."
         },
         "stop_sql_instance" = {
           label        = "Stop Instance"
@@ -266,8 +266,8 @@ pipeline "correct_one_sql_db_instance_with_low_cpu_utilization" {
             project_id    = param.project
             instance_name = param.instance_name
           }
-          success_msg = "Stopped SQL DB Instance ${param.title}."
-          error_msg   = "Error stopping SQL DB Instance ${param.title}."
+          success_msg = "Stopped SQL DB instance ${param.title}."
+          error_msg   = "Error stopping SQL DB instance ${param.title}."
         },
         "delete_instance" = {
           label        = "Delete Instance"
@@ -279,8 +279,8 @@ pipeline "correct_one_sql_db_instance_with_low_cpu_utilization" {
             instance_name = param.instance_name
             project_id    = param.project
           }
-          success_msg = "Deleted SQL DB Instance ${param.title}."
-          error_msg   = "Error deleting SQL DB Instance ${param.title}."
+          success_msg = "Deleted SQL DB instance ${param.title}."
+          error_msg   = "Error deleting SQL DB instance ${param.title}."
         }
       }
     }
@@ -313,6 +313,6 @@ variable "sql_db_instances_with_low_cpu_utilization_enabled_actions" {
 
 variable "alarm_threshold" {
   type        = number
-  description = "The threshold for CPU utilization to trigger an alarm."
+  description = "The threshold for cpu utilization to trigger an alarm."
   default     = 25
 }

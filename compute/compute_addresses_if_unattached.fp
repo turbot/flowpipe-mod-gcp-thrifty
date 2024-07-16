@@ -252,7 +252,7 @@ pipeline "correct_one_compute_address_if_unattached" {
           error_msg   = "Error skipping Compute address ${param.title}."
         },
         "delete" = {
-          label        = "Delete"
+          label        = "Delete Compute Address"
           value        = "delete"
           style        = local.style_ok
           pipeline_ref = local.gcp_pipeline_delete_compute_address

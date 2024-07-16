@@ -14,8 +14,8 @@ locals {
 }
 
 trigger "query" "detect_and_correct_compute_node_groups_if_autoscaling_disabled" {
-  title         = "Detect & correct compute node groups if autoscaling disabled"
-  description   = "Detects compute node groups if autoscaling disabled and runs your chosen action."
+  title         = "Detect & correct Compute node groups if autoscaling disabled"
+  description   = "Detects Compute node groups if autoscaling disabled and runs your chosen action."
   documentation = file("./compute/docs/detect_and_correct_compute_node_groups_if_autoscaling_disabled_trigger.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
@@ -33,8 +33,8 @@ trigger "query" "detect_and_correct_compute_node_groups_if_autoscaling_disabled"
 }
 
 pipeline "detect_and_correct_compute_node_groups_if_autoscaling_disabled" {
-  title         = "Detect & correct compute node groups if autoscaling disabled"
-  description   = "Detects compute node groups if autoscaling disabled and runs your chosen action."
+  title         = "Detect & correct Compute node groups if autoscaling disabled"
+  description   = "Detects Compute node groups if autoscaling disabled and runs your chosen action."
   documentation = file("./compute/docs/detect_and_correct_compute_node_groups_if_autoscaling_disabled.md")
   tags          = merge(local.compute_common_tags, { class = "unused", type = "featured" })
 
@@ -93,8 +93,8 @@ pipeline "detect_and_correct_compute_node_groups_if_autoscaling_disabled" {
 }
 
 pipeline "correct_compute_node_groups_if_autoscaling_disabled" {
-  title         = "Correct compute node groups if autoscaling disabled"
-  description   = "Runs corrective action on a collection of compute node groups if autoscaling disabled."
+  title         = "Correct Compute node groups if autoscaling disabled"
+  description   = "Runs corrective action on a collection of Compute node groups if autoscaling disabled."
   documentation = file("./compute/docs/correct_compute_node_groups_if_autoscaling_disabled.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
@@ -141,7 +141,7 @@ pipeline "correct_compute_node_groups_if_autoscaling_disabled" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} compute node group autoscaling disabled."
+    text     = "Detected ${length(param.items)} Compute node group autoscaling disabled."
   }
 
   step "transform" "items_by_id" {
@@ -168,8 +168,8 @@ pipeline "correct_compute_node_groups_if_autoscaling_disabled" {
 }
 
 pipeline "correct_one_compute_node_group_if_autoscaling_disabled" {
-  title         = "Correct one compute node group if autoscaling disabled"
-  description   = "Runs corrective action on an compute node group autoscaling disabled."
+  title         = "Correct one Compute node group if autoscaling disabled"
+  description   = "Runs corrective action on an Compute node group autoscaling disabled."
   documentation = file("./compute/docs/correct_one_compute_node_group_if_autoscaling_disabled.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
@@ -240,7 +240,7 @@ pipeline "correct_one_compute_node_group_if_autoscaling_disabled" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected compute node group ${param.title} autoscaling disabled."
+      detect_msg         = "Detected Compute node group ${param.title} autoscaling disabled."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -252,10 +252,10 @@ pipeline "correct_one_compute_node_group_if_autoscaling_disabled" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped compute node group ${param.title} autoscaling disabled."
+            text     = "Skipped Compute node group ${param.title} autoscaling disabled."
           }
-          success_msg = "Skipped compute node group ${param.title}."
-          error_msg   = "Error skipping compute node group ${param.title}."
+          success_msg = "Skipped Compute node group ${param.title}."
+          error_msg   = "Error skipping Compute node group ${param.title}."
         },
         "enable_autoscaling_policy" = {
           label        = "Enable Autoscaling Policy"
@@ -270,8 +270,8 @@ pipeline "correct_one_compute_node_group_if_autoscaling_disabled" {
             zone            = param.zone
             cred            = param.cred
           }
-          success_msg = "Enabled autoscaling policy for compute node group ${param.title}."
-          error_msg   = "Error enabling autoscaling policy for compute node group ${param.title}."
+          success_msg = "Enabled autoscaling policy for Compute node group ${param.title}."
+          error_msg   = "Error enabling autoscaling policy for Compute node group ${param.title}."
         }
       }
     }

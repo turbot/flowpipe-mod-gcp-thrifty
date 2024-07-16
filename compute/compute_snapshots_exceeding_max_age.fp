@@ -183,7 +183,7 @@ pipeline "correct_one_compute_snapshot_exceeding_max_age" {
 
   param "title" {
     type        = string
-    description = "The title of the Compute snapshot."
+    description = local.description_title
   }
 
   param "cred" {

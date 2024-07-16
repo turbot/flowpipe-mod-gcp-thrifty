@@ -171,12 +171,12 @@ pipeline "correct_one_vpn_gateway_with_no_tunnels" {
 
   param "title" {
     type        = string
-    description = "The title of the VPN gateway."
+    description = local.description_title
   }
 
   param "project" {
     type        = string
-    description = "The project ID of the VPN gateway."
+    description = local.description_project
   }
 
   param "name" {
@@ -186,7 +186,7 @@ pipeline "correct_one_vpn_gateway_with_no_tunnels" {
 
   param "location" {
     type        = string
-    description = "The location of the VPN gateway."
+    description = local.description_location
   }
 
   param "cred" {

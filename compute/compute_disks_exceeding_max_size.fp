@@ -252,7 +252,7 @@ pipeline "correct_one_compute_disk_exceeding_max_size" {
           error_msg   = "Error skipping Compute disk ${param.title}."
         },
         "delete_disk" = {
-          label        = "delete disk"
+          label        = "Delete Compute Disk"
           value        = "delete_disk"
           style        = local.style_alert
           pipeline_ref = local.gcp_pipeline_delete_compute_disk
@@ -266,7 +266,7 @@ pipeline "correct_one_compute_disk_exceeding_max_size" {
           error_msg   = "Error deleting Compute disk ${param.title}."
         }
         "snapshot_and_delete_disk" = {
-          label        = "Snapshot & delete disk"
+          label        = "Snapshot & Delete Compute Disk"
           value        = "snapshot_and_delete_disk"
           style        = local.style_alert
           pipeline_ref = pipeline.snapshot_and_delete_compute_disk

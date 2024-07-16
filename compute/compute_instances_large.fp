@@ -15,8 +15,8 @@ locals {
 }
 
 trigger "query" "detect_and_correct_compute_instances_large" {
-  title         = "Detect & correct Compute Engine instances large"
-  description   = "Identifies large Compute Engine instances and executes the chosen action."
+  title         = "Detect & correct Compute engine instances large"
+  description   = "Identifies large Compute engine instances and executes the chosen action."
   documentation = file("./compute/docs/detect_and_correct_compute_instances_large_trigger.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
@@ -34,8 +34,8 @@ trigger "query" "detect_and_correct_compute_instances_large" {
 }
 
 pipeline "detect_and_correct_compute_instances_large" {
-  title         = "Detect & correct Compute Engine instances large"
-  description   = "Detects large Compute Engine instances and runs your chosen action."
+  title         = "Detect & correct Compute engine instances large"
+  description   = "Detects large Compute engine instances and runs your chosen action."
   documentation = file("./compute/docs/detect_and_correct_compute_instances_large.md")
   tags          = merge(local.compute_common_tags, { class = "unused", type = "featured" })
 
@@ -94,8 +94,8 @@ pipeline "detect_and_correct_compute_instances_large" {
 }
 
 pipeline "correct_compute_instances_large" {
-  title         = "Correct Compute Engine instances large"
-  description   = "Executes corrective actions on large Compute Engine instances."
+  title         = "Correct Compute engine instances large"
+  description   = "Executes corrective actions on large Compute engine instances."
   documentation = file("./compute/docs/correct_compute_instances_large.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
@@ -142,7 +142,7 @@ pipeline "correct_compute_instances_large" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} large Compute Engine instances."
+    text     = "Detected ${length(param.items)} large Compute engine instance."
   }
 
   step "transform" "items_by_id" {
@@ -169,8 +169,8 @@ pipeline "correct_compute_instances_large" {
 }
 
 pipeline "correct_one_compute_instance_large" {
-  title         = "Correct one Compute Engine instance large"
-  description   = "Runs corrective action on a single large Compute Engine instance."
+  title         = "Correct one Compute engine instance large"
+  description   = "Runs corrective action on a single large Compute engine instance."
   documentation = file("./compute/docs/correct_one_compute_instance_large.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
@@ -186,7 +186,7 @@ pipeline "correct_one_compute_instance_large" {
 
   param "instance_name" {
     type        = string
-    description = "The name of the Compute Engine instance."
+    description = "The name of the Compute engine instance."
   }
 
   param "zone" {
@@ -253,7 +253,7 @@ pipeline "correct_one_compute_instance_large" {
           error_msg   = "Error skipping Compute Engine Instance ${param.title}."
         },
         "stop_instance" = {
-          label        = "Stop instance"
+          label        = "Stop Compute Instance"
           value        = "stop_instance"
           style        = local.style_alert
           pipeline_ref = local.gcp_pipeline_stop_compute_instance
@@ -263,11 +263,11 @@ pipeline "correct_one_compute_instance_large" {
             project_id    = param.project
             cred          = param.cred
           }
-          success_msg = "Stopped Compute Engine Instance ${param.title}."
-          error_msg   = "Error stopping Compute Engine Instance ${param.title}."
+          success_msg = "Stopped Compute engine instance ${param.title}."
+          error_msg   = "Error stopping Compute engine instance ${param.title}."
         },
         "terminate_instance" = {
-          label        = "Terminate Instance"
+          label        = "Terminate Compute Instance"
           value        = "terminate_instance"
           style        = local.style_alert
           pipeline_ref = local.gcp_pipeline_terminate_compute_instance
@@ -277,8 +277,8 @@ pipeline "correct_one_compute_instance_large" {
             project_id    = param.project
             cred          = param.cred
           }
-          success_msg = "Deleted Compute Engine Instance ${param.title}."
-          error_msg   = "Error deleting Compute Engine Instance ${param.title}."
+          success_msg = "Deleted Compute engine instance ${param.title}."
+          error_msg   = "Error deleting Compute engine instance ${param.title}."
         }
       }
     }

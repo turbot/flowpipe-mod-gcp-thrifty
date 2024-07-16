@@ -195,7 +195,7 @@ pipeline "correct_one_logging_bucket_with_high_retention" {
 
   param "location" {
     type        = string
-    description = "The location of the Logging Bucket."
+    description = local.description_location
   }
 
   param "project" {

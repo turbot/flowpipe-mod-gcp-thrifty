@@ -290,7 +290,7 @@ pipeline "correct_one_compute_disk_with_low_usage" {
           error_msg   = "Error skipping Compute disk ${param.title}."
         },
         "delete_disk" = {
-          label        = "Delete disk"
+          label        = "Delete Compute disk"
           value        = "delete_disk"
           style        = local.style_alert
           pipeline_ref = local.gcp_pipeline_delete_compute_disk
@@ -314,8 +314,8 @@ pipeline "correct_one_compute_disk_with_low_usage" {
             project   = param.project
             cred      = param.cred
           }
-          success_msg = "Snapshotted & deleted compute disk ${param.title}."
-          error_msg   = "Error snapshotting & deleting compute disk ${param.title}."
+          success_msg = "Snapshotted & deleted Compute disk ${param.title}."
+          error_msg   = "Error snapshotting & deleting Compute disk ${param.title}."
         }
       }
     }

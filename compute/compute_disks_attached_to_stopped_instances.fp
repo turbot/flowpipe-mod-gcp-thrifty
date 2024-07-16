@@ -277,7 +277,7 @@ pipeline "correct_one_compute_disk_attached_to_stopped_instance" {
           error_msg   = "Error detaching Compute disk ${param.disk_name} from the instance ${param.instance_name}."
         },
         "detach_and_delete_compute_disk" = {
-          label        = "Detach & delete disk"
+          label        = "Detach & Delete Disk"
           value        = "detach_and_delete_compute_disk"
           style        = local.style_alert
           pipeline_ref = pipeline.detach_and_delete_compute_disk
@@ -292,7 +292,7 @@ pipeline "correct_one_compute_disk_attached_to_stopped_instance" {
           error_msg   = "Error detaching and deleting Compute disk ${param.disk_name}."
         },
         "snapshot_detach_and_delete_disk" = {
-          label        = "Snapshot, detach & delete disk"
+          label        = "Snapshot, Detach & Delete Disk"
           value        = "snapshot_detach_and_delete_disk"
           style        = local.style_alert
           pipeline_ref = pipeline.snapshot_detach_and_delete_disk
@@ -390,7 +390,6 @@ pipeline "snapshot_detach_and_delete_disk" {
   param "cred" {
     type        = string
     description = local.description_credential
-    default     = "default"
   }
 
   step "pipeline" "create_compute_snapshot" {

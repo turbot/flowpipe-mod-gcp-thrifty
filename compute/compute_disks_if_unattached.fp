@@ -14,8 +14,8 @@ locals {
 }
 
 trigger "query" "detect_and_correct_compute_disks_if_unattached" {
-  title         = "Detect & correct compute disks if unattached"
-  description   = "Detects compute disks which are unattached and runs your chosen action."
+  title         = "Detect & correct Compute disks if unattached"
+  description   = "Detects Compute disks which are unattached and runs your chosen action."
   documentation = file("./compute/docs/detect_and_correct_compute_disks_if_unattached_trigger.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
@@ -33,8 +33,8 @@ trigger "query" "detect_and_correct_compute_disks_if_unattached" {
 }
 
 pipeline "detect_and_correct_compute_disks_if_unattached" {
-  title         = "Detect & correct compute disks if unattached"
-  description   = "Detects compute disks which are unattached and runs your chosen action."
+  title         = "Detect & correct Compute disks if unattached"
+  description   = "Detects Compute disks which are unattached and runs your chosen action."
   documentation = file("./compute/docs/detect_and_correct_compute_disks_if_unattached.md")
   tags          = merge(local.compute_common_tags, { class = "unused", type = "featured" })
 
@@ -93,8 +93,8 @@ pipeline "detect_and_correct_compute_disks_if_unattached" {
 }
 
 pipeline "correct_compute_disks_if_unattached" {
-  title         = "Correct compute disks if unattached"
-  description   = "Runs corrective action on a collection of compute disks which are unattached."
+  title         = "Correct Compute disks if unattached"
+  description   = "Runs corrective action on a collection of Compute disks which are unattached."
   documentation = file("./compute/docs/correct_compute_disks_if_unattached.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
@@ -141,7 +141,7 @@ pipeline "correct_compute_disks_if_unattached" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} unattached compute disk(s)."
+    text     = "Detected ${length(param.items)} unattached Compute disk(s)."
   }
 
   step "transform" "items_by_id" {
@@ -168,14 +168,14 @@ pipeline "correct_compute_disks_if_unattached" {
 }
 
 pipeline "correct_one_compute_disk_if_unattached" {
-  title         = "Correct one compute disk if unattached"
-  description   = "Runs corrective action on a compute disk unattached."
+  title         = "Correct one Compute disk if unattached"
+  description   = "Runs corrective action on a Compute disk unattached."
   documentation = file("./compute/docs/correct_one_compute_disk_if_unattached.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
   param "title" {
     type        = string
-    description = "The title of the compute disk."
+    description = local.description_title
   }
 
   param "disk_name" {
@@ -234,7 +234,7 @@ pipeline "correct_one_compute_disk_if_unattached" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected compute disk ${param.title} unattached."
+      detect_msg         = "Detected Compute disk ${param.title} unattached."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -246,13 +246,13 @@ pipeline "correct_one_compute_disk_if_unattached" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped compute disk ${param.title} unattached."
+            text     = "Skipped Compute disk ${param.title} unattached."
           }
           success_msg = "Skipped compute disk ${param.title}."
           error_msg   = "Error skipping compute disk ${param.title}."
         },
         "delete_compute_disk" = {
-          label        = "Delete Compute disk"
+          label        = "Delete Compute Disk"
           value        = "delete_compute_disk"
           style        = local.style_alert
           pipeline_ref = local.gcp_pipeline_delete_compute_disk
@@ -262,11 +262,11 @@ pipeline "correct_one_compute_disk_if_unattached" {
             project_id = param.project
             cred       = param.cred
           }
-          success_msg = "Deleted compute disk ${param.title}."
-          error_msg   = "Error deleting compute disk ${param.title}."
+          success_msg = "Deleted Compute disk ${param.title}."
+          error_msg   = "Error deleting Compute disk ${param.title}."
         }
         "snapshot_and_delete_compute_disk" = {
-          label        = "Snapshot & Delete Compute disk"
+          label        = "Snapshot & Delete Compute Disk"
           value        = "snapshot_and_delete_compute_disk"
           style        = local.style_alert
           pipeline_ref = pipeline.snapshot_and_delete_compute_disk
@@ -276,8 +276,8 @@ pipeline "correct_one_compute_disk_if_unattached" {
             project   = param.project
             cred      = param.cred
           }
-          success_msg = "Snapshotted & Deleted compute disk ${param.title}."
-          error_msg   = "Error snapshotting & deleting compute disk ${param.title}."
+          success_msg = "Snapshotted & Deleted Compute disk ${param.title}."
+          error_msg   = "Error snapshotting & deleting Compute disk ${param.title}."
         }
       }
     }

@@ -3,6 +3,7 @@ locals {
   select
     concat(cluster_name, ' [', location, '/', project, ']') as title,
     cluster_name as name,
+    _ctx ->> 'connection_name' as cred,
     location,
     project
   from
@@ -99,6 +100,7 @@ pipeline "correct_dataproc_clusters_autoscaling_disabled" {
   param "items" {
     type = list(object({
       title    = string
+      cred     = string
       name     = string
       location = string
       project  = string
@@ -148,6 +150,7 @@ pipeline "correct_dataproc_clusters_autoscaling_disabled" {
     args = {
       title              = each.value.title
       name               = each.value.name
+      cred               = each.value.cred
       location           = each.value.location
       project            = each.value.project
       notifier           = param.notifier
@@ -168,12 +171,11 @@ pipeline "correct_one_dataproc_cluster_autoscaling_disabled" {
   param "cred" {
     type        = string
     description = local.description_credential
-    default     = "default"
   }
 
   param "title" {
     type        = string
-    description = "The title of the Dataproc cluster."
+    description = local.description_title
   }
 
   param "name" {

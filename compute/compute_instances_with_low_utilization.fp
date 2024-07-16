@@ -271,7 +271,7 @@ pipeline "correct_one_compute_instance_with_low_utilization" {
           error_msg   = "Error skipping Compute instance ${param.title}."
         },
         "stop_downgrade_instance_type" = {
-          label        = "Stop & downgrade instance type"
+          label        = "Stop & Downgrade Instance Type"
           value        = "stop_downgrade_instance_type"
           style        = local.style_alert
           pipeline_ref = pipeline.stop_downgrade_compute_instance
