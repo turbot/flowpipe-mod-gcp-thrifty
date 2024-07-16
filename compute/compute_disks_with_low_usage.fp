@@ -52,8 +52,8 @@ locals {
 }
 
 trigger "query" "detect_and_correct_compute_disks_with_low_usage" {
-  title         = "Detect & correct Compute Disks with low usage"
-  description   = "Detects Compute Disks with low usage and runs your chosen action."
+  title         = "Detect & correct Compute disks with low usage"
+  description   = "Detects Compute disks with low usage and runs your chosen action."
   documentation = file("./compute/docs/detect_and_correct_compute_disks_with_low_usage_trigger.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
@@ -71,8 +71,8 @@ trigger "query" "detect_and_correct_compute_disks_with_low_usage" {
 }
 
 pipeline "detect_and_correct_compute_disks_with_low_usage" {
-  title         = "Detect & correct Compute Disks with low usage"
-  description   = "Detects Compute Disks with low usage and runs your chosen action."
+  title         = "Detect & correct Compute disks with low usage"
+  description   = "Detects Compute disks with low usage and runs your chosen action."
   documentation = file("./compute/docs/detect_and_correct_compute_disks_with_low_usage.md")
   tags          = merge(local.compute_common_tags, { class = "unused", type = "featured" })
 
@@ -131,8 +131,8 @@ pipeline "detect_and_correct_compute_disks_with_low_usage" {
 }
 
 pipeline "correct_compute_disks_with_low_usage" {
-  title         = "Correct Compute Disks with low usage"
-  description   = "Runs corrective action on a collection of Compute Disks with low usage."
+  title         = "Correct Compute disks with low usage"
+  description   = "Runs corrective action on a collection of Compute disks with low usage."
   documentation = file("./compute/docs/correct_compute_disks_with_low_usage.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
@@ -179,7 +179,7 @@ pipeline "correct_compute_disks_with_low_usage" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} Compute Disks with low usage."
+    text     = "Detected ${length(param.items)} Compute disks with low usage."
   }
 
   step "transform" "items_by_id" {
@@ -206,14 +206,14 @@ pipeline "correct_compute_disks_with_low_usage" {
 }
 
 pipeline "correct_one_compute_disk_with_low_usage" {
-  title         = "Correct one Compute Disk with low usage"
-  description   = "Runs corrective action on a Compute Disk with low usage."
+  title         = "Correct one Compute disk with low usage"
+  description   = "Runs corrective action on a Compute disk with low usage."
   documentation = file("./compute/docs/correct_one_compute_disk_with_low_usage.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
   param "disk_name" {
     type        = string
-    description = "The name of the Compute Disk."
+    description = "The name of the Compute disk."
   }
 
   param "project" {
@@ -272,7 +272,7 @@ pipeline "correct_one_compute_disk_with_low_usage" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected Compute Disk ${param.title} with low usage."
+      detect_msg         = "Detected Compute disk ${param.title} with low usage."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -284,13 +284,13 @@ pipeline "correct_one_compute_disk_with_low_usage" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped Compute Disk ${param.title} with low usage."
+            text     = "Skipped Compute disk ${param.title} with low usage."
           }
-          success_msg = "Skipped Compute Disk ${param.title}."
-          error_msg   = "Error skipping Compute Disk ${param.title}."
+          success_msg = "Skipped Compute disk ${param.title}."
+          error_msg   = "Error skipping Compute disk ${param.title}."
         },
         "delete_disk" = {
-          label        = "Delete Disk"
+          label        = "Delete disk"
           value        = "delete_disk"
           style        = local.style_alert
           pipeline_ref = local.gcp_pipeline_delete_compute_disk
@@ -300,11 +300,11 @@ pipeline "correct_one_compute_disk_with_low_usage" {
             disk_name  = param.disk_name
             cred       = param.cred
           }
-          success_msg = "Deleted Compute Disk ${param.title}."
-          error_msg   = "Error deleting Compute Disk ${param.title}."
+          success_msg = "Deleted Compute disk ${param.title}."
+          error_msg   = "Error deleting Compute disk ${param.title}."
         }
         "snapshot_and_delete_compute_disk" = {
-          label        = "Snapshot & Delete Compute Disk"
+          label        = "Snapshot & delete Compute disk"
           value        = "snapshot_and_delete_compute_disk"
           style        = local.style_alert
           pipeline_ref = pipeline.snapshot_and_delete_compute_disk
@@ -314,7 +314,7 @@ pipeline "correct_one_compute_disk_with_low_usage" {
             project   = param.project
             cred      = param.cred
           }
-          success_msg = "Snapshotted & Deleted compute disk ${param.title}."
+          success_msg = "Snapshotted & deleted compute disk ${param.title}."
           error_msg   = "Error snapshotting & deleting compute disk ${param.title}."
         }
       }

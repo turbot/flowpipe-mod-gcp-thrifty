@@ -14,8 +14,8 @@ locals {
 }
 
 trigger "query" "detect_and_correct_compute_addresses_if_unattached" {
-  title         = "Detect & correct Compute Addresses if unattached"
-  description   = "Detects unattached Compute Addresses and runs your chosen action."
+  title         = "Detect & correct Compute addresses if unattached"
+  description   = "Detects unattached Compute addresses and runs your chosen action."
   documentation = file("./compute/docs/detect_and_correct_compute_addresses_if_unattached_trigger.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
@@ -33,8 +33,8 @@ trigger "query" "detect_and_correct_compute_addresses_if_unattached" {
 }
 
 pipeline "detect_and_correct_compute_addresses_if_unattached" {
-  title         = "Detect & correct Compute Addresses if unattached"
-  description   = "Detects unattached Compute Addresses and runs your chosen action."
+  title         = "Detect & correct Compute addresses if unattached"
+  description   = "Detects unattached Compute addresses and runs your chosen action."
   documentation = file("./compute/docs/detect_and_correct_compute_addresses_if_unattached.md")
   tags          = merge(local.compute_common_tags, { class = "unused", type = "featured" })
 
@@ -93,8 +93,8 @@ pipeline "detect_and_correct_compute_addresses_if_unattached" {
 }
 
 pipeline "correct_compute_addresses_if_unattached" {
-  title         = "Correct Compute Addresses if unattached"
-  description   = "Runs corrective action on a collection of Compute Addresses which are unattached."
+  title         = "Correct Compute addresses if unattached"
+  description   = "Runs corrective action on a collection of Compute addresses that are unattached."
   documentation = file("./compute/docs/correct_compute_addresses_if_unattached.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
@@ -141,7 +141,7 @@ pipeline "correct_compute_addresses_if_unattached" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} Compute Addresses unattached."
+    text     = "Detected ${length(param.items)} unattached Compute addresses."
   }
 
   step "transform" "items_by_id" {
@@ -168,14 +168,14 @@ pipeline "correct_compute_addresses_if_unattached" {
 }
 
 pipeline "correct_one_compute_address_if_unattached" {
-  title         = "Correct one Compute Address if unattached"
-  description   = "Runs corrective action on one Compute Address which is unattached."
+  title         = "Correct one Compute address if unattached"
+  description   = "Runs corrective action on one Compute address that is unattached."
   documentation = file("./compute/docs/correct_one_compute_address_if_unattached.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
   param "address_name" {
     type        = string
-    description = "The name of the Compute Address."
+    description = "The name of the Compute address."
   }
 
   param "location" {
@@ -234,7 +234,7 @@ pipeline "correct_one_compute_address_if_unattached" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected Compute Address ${param.title} unattached."
+      detect_msg         = "Detected unattached Compute address ${param.title}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -246,14 +246,14 @@ pipeline "correct_one_compute_address_if_unattached" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped Compute Address ${param.title} unattached."
+            text     = "Skipped unattached Compute address ${param.title}."
           }
-          success_msg = "Skipped Compute Address ${param.title}."
-          error_msg   = "Error skipping Compute Address ${param.title}."
+          success_msg = "Skipped Compute address ${param.title}."
+          error_msg   = "Error skipping Compute address ${param.title}."
         },
-        "release" = {
-          label        = "Release"
-          value        = "release"
+        "delete" = {
+          label        = "Delete"
+          value        = "delete"
           style        = local.style_ok
           pipeline_ref = local.gcp_pipeline_delete_compute_address
           pipeline_args = {
@@ -262,8 +262,8 @@ pipeline "correct_one_compute_address_if_unattached" {
             project_id   = param.project
             cred         = param.cred
           }
-          success_msg = "Released Compute Address ${param.title}."
-          error_msg   = "Error releasing Compute Address ${param.title}."
+          success_msg = "Deleted Compute address ${param.title}."
+          error_msg   = "Error releasing Compute address ${param.title}."
         }
       }
     }
@@ -291,5 +291,5 @@ variable "compute_addresses_if_unattached_default_action" {
 variable "compute_addresses_if_unattached_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "release"]
+  default     = ["skip", "delete"]
 }

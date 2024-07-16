@@ -17,8 +17,8 @@ locals {
 }
 
 trigger "query" "detect_and_correct_compute_disks_attached_to_stopped_instances" {
-  title         = "Detect & correct Compute Disks attached to stopped instances"
-  description   = "Detects Compute Disks attached to stopped instances and runs your chosen action."
+  title         = "Detect & correct Compute disks attached to stopped instances"
+  description   = "Detects Compute disks attached to stopped instances and runs your chosen action."
   documentation = file("./compute/docs/detect_and_correct_compute_disks_attached_to_stopped_instances_trigger.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
@@ -36,8 +36,8 @@ trigger "query" "detect_and_correct_compute_disks_attached_to_stopped_instances"
 }
 
 pipeline "detect_and_correct_compute_disks_attached_to_stopped_instances" {
-  title         = "Detect & correct Compute Disks attached to stopped instances"
-  description   = "Detects Compute Disks attached to stopped instances and runs your chosen action."
+  title         = "Detect & correct Compute disks attached to stopped instances"
+  description   = "Detects Compute disks attached to stopped instances and runs your chosen action."
   documentation = file("./compute/docs/detect_and_correct_compute_disks_attached_to_stopped_instances.md")
   tags          = merge(local.compute_common_tags, { class = "unused", type = "featured" })
 
@@ -96,8 +96,8 @@ pipeline "detect_and_correct_compute_disks_attached_to_stopped_instances" {
 }
 
 pipeline "correct_compute_disks_attached_to_stopped_instances" {
-  title         = "Correct Compute Disks attached to stopped instances"
-  description   = "Runs corrective action on a collection of Compute Disks attached to stopped instance."
+  title         = "Correct Compute disks attached to stopped instances"
+  description   = "Runs corrective action on a collection of Compute disks attached to stopped instance."
   documentation = file("./compute/docs/correct_compute_disks_attached_to_stopped_instances.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
@@ -145,7 +145,7 @@ pipeline "correct_compute_disks_attached_to_stopped_instances" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} Compute Disks attached to stopped instances."
+    text     = "Detected ${length(param.items)} Compute disks attached to stopped instances."
   }
 
   step "transform" "items_by_id" {
@@ -173,19 +173,19 @@ pipeline "correct_compute_disks_attached_to_stopped_instances" {
 }
 
 pipeline "correct_one_compute_disk_attached_to_stopped_instance" {
-  title         = "Correct one Compute Disk attached to stopped instance"
-  description   = "Runs corrective action on a Compute Disk attached to a stopped instance."
+  title         = "Correct one Compute disk attached to stopped instance"
+  description   = "Runs corrective action on a Compute disk attached to a stopped instance."
   documentation = file("./compute/docs/correct_one_compute_disk_attached_to_stopped_instance.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
   param "project" {
     type        = string
-    description = "The project of the Compute Disk."
+    description = local.description_project
   }
 
   param "disk_name" {
     type        = string
-    description = "The name of the Compute Disk."
+    description = "The name of the Compute disk."
   }
 
   param "zone" {
@@ -244,7 +244,7 @@ pipeline "correct_one_compute_disk_attached_to_stopped_instance" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected Compute Disk ${param.disk_name} attached to stopped instance ${param.instance_name}."
+      detect_msg         = "Detected Compute disk ${param.disk_name} attached to stopped instance ${param.instance_name}."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -256,13 +256,13 @@ pipeline "correct_one_compute_disk_attached_to_stopped_instance" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped Compute Disk ${param.disk_name} attached to stopped instance ${param.instance_name}."
+            text     = "Skipped Compute disk ${param.disk_name} attached to stopped instance ${param.instance_name}."
           }
           success_msg = ""
           error_msg   = ""
         },
         "detach_disk" = {
-          label        = "Detach Disk"
+          label        = "Detach disk"
           value        = "detach_disk"
           style        = local.style_info
           pipeline_ref = local.gcp_pipeline_detach_compute_disk
@@ -273,11 +273,11 @@ pipeline "correct_one_compute_disk_attached_to_stopped_instance" {
             instance_name = param.instance_name
             cred          = param.cred
           }
-          success_msg = "Detached Compute Disk ${param.disk_name} from the instance ${param.instance_name}."
-          error_msg   = "Error detaching Compute Disk ${param.disk_name} from the instance ${param.instance_name}."
+          success_msg = "Detached Compute disk ${param.disk_name} from the instance ${param.instance_name}."
+          error_msg   = "Error detaching Compute disk ${param.disk_name} from the instance ${param.instance_name}."
         },
         "detach_and_delete_compute_disk" = {
-          label        = "Detach & Delete Disk"
+          label        = "Detach & delete disk"
           value        = "detach_and_delete_compute_disk"
           style        = local.style_alert
           pipeline_ref = pipeline.detach_and_delete_compute_disk
@@ -288,14 +288,14 @@ pipeline "correct_one_compute_disk_attached_to_stopped_instance" {
             zone          = param.zone
             cred          = param.cred
           }
-          success_msg = "Detached & Deleted Compute Disk ${param.disk_name}."
-          error_msg   = "Error detaching and deleting Compute Disk ${param.disk_name}."
+          success_msg = "Detached & deleted Compute disk ${param.disk_name}."
+          error_msg   = "Error detaching and deleting Compute disk ${param.disk_name}."
         },
-        "snapshot_and_detach_and_delete_disk" = {
-          label        = "Snapshot, Detached & Delete Disk"
-          value        = "snapshot_and_detach_and_delete_disk"
+        "snapshot_detach_and_delete_disk" = {
+          label        = "Snapshot, detach & delete disk"
+          value        = "snapshot_detach_and_delete_disk"
           style        = local.style_alert
-          pipeline_ref = pipeline.snapshot_and_detach_and_delete_disk
+          pipeline_ref = pipeline.snapshot_detach_and_delete_disk
           pipeline_args = {
             disk_name     = param.disk_name
             project       = param.project
@@ -303,8 +303,8 @@ pipeline "correct_one_compute_disk_attached_to_stopped_instance" {
             zone          = param.zone
             cred          = param.cred
           }
-          success_msg = "Snapshotted, Detached & Deleted Compute Disk ${param.disk_name}."
-          error_msg   = "Error snapshotting & deleting Compute Disk ${param.disk_name}."
+          success_msg = "Snapshotted, detached & deleted Compute disk ${param.disk_name}."
+          error_msg   = "Error snapshotting & deleting Compute disk ${param.disk_name}."
         }
       }
     }
@@ -312,8 +312,8 @@ pipeline "correct_one_compute_disk_attached_to_stopped_instance" {
 }
 
 pipeline "detach_and_delete_compute_disk" {
-  title       = "Detach & Delete Compute Disk"
-  description = "A utility pipeline which snapshots and deletes a Compute Disk."
+  title       = "Detach & delete Compute disk"
+  description = "A utility pipeline which snapshots and deletes a Compute disk."
 
   param "instance_name" {
     type        = string
@@ -322,12 +322,12 @@ pipeline "detach_and_delete_compute_disk" {
 
   param "project" {
     type        = string
-    description = "The project of the Compute Disk."
+    description = local.description_project
   }
 
   param "disk_name" {
     type        = string
-    description = "The name of the Compute Disk."
+    description = "The name of the Compute disk."
   }
 
   param "zone" {
@@ -363,18 +363,18 @@ pipeline "detach_and_delete_compute_disk" {
   }
 }
 
-pipeline "snapshot_and_detach_and_delete_disk" {
-  title       = "Snapshot & Detach & Delete Compute Disk"
-  description = "A utility pipeline which snapshots and deletes a Compute Disk."
+pipeline "snapshot_detach_and_delete_disk" {
+  title       = "Snapshot & Detach & Delete Compute disk"
+  description = "A utility pipeline which snapshots and deletes a Compute disk."
 
   param "project" {
     type        = string
-    description = "The project of the Compute Disk."
+    description = local.description_project
   }
 
   param "disk_name" {
     type        = string
-    description = "The name of the Compute Disk."
+    description = "The name of the Compute disk."
   }
 
   param "instance_name" {
@@ -449,5 +449,5 @@ variable "compute_disks_attached_to_stopped_instances_default_action" {
 variable "compute_disks_attached_to_stopped_instances_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "detach_disk", "detach_and_delete_compute_disk", "snapshot_and_detach_and_delete_disk"]
+  default     = ["skip", "detach_disk", "detach_and_delete_compute_disk", "snapshot_detach_and_delete_disk"]
 }

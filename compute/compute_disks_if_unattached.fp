@@ -141,7 +141,7 @@ pipeline "correct_compute_disks_if_unattached" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} compute disk unattached."
+    text     = "Detected ${length(param.items)} unattached compute disk(s)."
   }
 
   step "transform" "items_by_id" {
@@ -169,7 +169,7 @@ pipeline "correct_compute_disks_if_unattached" {
 
 pipeline "correct_one_compute_disk_if_unattached" {
   title         = "Correct one compute disk if unattached"
-  description   = "Runs corrective action on an compute disk unattached."
+  description   = "Runs corrective action on a compute disk unattached."
   documentation = file("./compute/docs/correct_one_compute_disk_if_unattached.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
@@ -180,7 +180,7 @@ pipeline "correct_one_compute_disk_if_unattached" {
 
   param "disk_name" {
     type        = string
-    description = "Compute Disk name."
+    description = "Compute disk name."
   }
 
   param "project" {
@@ -252,7 +252,7 @@ pipeline "correct_one_compute_disk_if_unattached" {
           error_msg   = "Error skipping compute disk ${param.title}."
         },
         "delete_compute_disk" = {
-          label        = "Delete Compute Disk"
+          label        = "Delete Compute disk"
           value        = "delete_compute_disk"
           style        = local.style_alert
           pipeline_ref = local.gcp_pipeline_delete_compute_disk
@@ -266,7 +266,7 @@ pipeline "correct_one_compute_disk_if_unattached" {
           error_msg   = "Error deleting compute disk ${param.title}."
         }
         "snapshot_and_delete_compute_disk" = {
-          label        = "Snapshot & Delete Compute Disk"
+          label        = "Snapshot & Delete Compute disk"
           value        = "snapshot_and_delete_compute_disk"
           style        = local.style_alert
           pipeline_ref = pipeline.snapshot_and_delete_compute_disk
@@ -285,12 +285,12 @@ pipeline "correct_one_compute_disk_if_unattached" {
 }
 
 pipeline "snapshot_and_delete_compute_disk" {
-  title       = "Snapshot & Delete Compute Disk"
+  title       = "Snapshot & Delete Compute disk"
   description = "A utility pipeline which snapshots and deletes a compute disk."
 
   param "disk_name" {
     type        = string
-    description = "Compute Disk name."
+    description = "Compute disk name."
   }
 
   param "project" {

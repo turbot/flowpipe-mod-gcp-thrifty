@@ -14,8 +14,8 @@ locals {
 }
 
 trigger "query" "detect_and_correct_compute_disks_exceeding_max_size" {
-  title         = "Detect & correct Compute Disks exceeding max size"
-  description   = "Detects Compute Disks exceeding maximum size and runs your chosen action."
+  title         = "Detect & correct Compute disks exceeding max size"
+  description   = "Detects Compute disks exceeding maximum size and runs your chosen action."
   documentation = file("./compute/docs/detect_and_correct_compute_disks_exceeding_max_size_trigger.md")
   tags          = merge(local.compute_common_tags, { class = "managed" })
 
@@ -33,8 +33,8 @@ trigger "query" "detect_and_correct_compute_disks_exceeding_max_size" {
 }
 
 pipeline "detect_and_correct_compute_disks_exceeding_max_size" {
-  title         = "Detect & correct Compute Disks exceeding max size"
-  description   = "Detects Compute Disks exceeding maximum size and runs your chosen action."
+  title         = "Detect & correct Compute disks exceeding max size"
+  description   = "Detects Compute disks exceeding maximum size and runs your chosen action."
   documentation = file("./compute/docs/detect_and_correct_compute_disks_exceeding_max_size.md")
   tags          = merge(local.compute_common_tags, { class = "managed", type = "featured" })
 
@@ -93,8 +93,8 @@ pipeline "detect_and_correct_compute_disks_exceeding_max_size" {
 }
 
 pipeline "correct_compute_disks_exceeding_max_size" {
-  title         = "Correct Compute Disks exceeding max size"
-  description   = "Runs corrective action on a collection of Compute Disks exceeding maximum size."
+  title         = "Correct Compute disks exceeding max size"
+  description   = "Runs corrective action on a collection of Compute disks exceeding maximum size."
   documentation = file("./compute/docs/correct_compute_disks_exceeding_max_size.md")
   tags          = merge(local.compute_common_tags, { class = "managed" })
 
@@ -141,7 +141,7 @@ pipeline "correct_compute_disks_exceeding_max_size" {
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} Compute Disks exceeding maximum size."
+    text     = "Detected ${length(param.items)} Compute disks exceeding maximum size."
   }
 
   step "transform" "items_by_id" {
@@ -168,14 +168,14 @@ pipeline "correct_compute_disks_exceeding_max_size" {
 }
 
 pipeline "correct_one_compute_disk_exceeding_max_size" {
-  title         = "Correct one Compute Disk exceeding max size"
-  description   = "Runs corrective action on a Compute Disk exceeding maximum size."
+  title         = "Correct one Compute disk exceeding max size"
+  description   = "Runs corrective action on a Compute disk exceeding maximum size."
   documentation = file("./compute/docs/correct_one_compute_disk_exceeding_max_size.md")
   tags          = merge(local.compute_common_tags, { class = "managed" })
 
   param "project" {
     type        = string
-    description = "The project ID of the Compute Disk."
+    description = local.description_project
   }
 
   param "zone" {
@@ -185,7 +185,7 @@ pipeline "correct_one_compute_disk_exceeding_max_size" {
 
   param "disk_name" {
     type        = string
-    description = "The name of the Compute Disk."
+    description = "The name of the Compute disk."
   }
 
   param "cred" {
@@ -234,7 +234,7 @@ pipeline "correct_one_compute_disk_exceeding_max_size" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected Compute Disk ${param.disk_name} in project ${param.project} and zone ${param.zone} exceeding maximum size."
+      detect_msg         = "Detected Compute disk ${param.disk_name} in project ${param.project} and zone ${param.zone} exceeding maximum size."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -246,13 +246,13 @@ pipeline "correct_one_compute_disk_exceeding_max_size" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped Compute Disk ${param.title} exceeding maximum size."
+            text     = "Skipped Compute disk ${param.title} exceeding maximum size."
           }
-          success_msg = "Skipped Compute Disk ${param.title}."
-          error_msg   = "Error skipping Compute Disk ${param.title}."
+          success_msg = "Skipped Compute disk ${param.title}."
+          error_msg   = "Error skipping Compute disk ${param.title}."
         },
         "delete_disk" = {
-          label        = "Delete Disk"
+          label        = "delete disk"
           value        = "delete_disk"
           style        = local.style_alert
           pipeline_ref = local.gcp_pipeline_delete_compute_disk
@@ -262,11 +262,11 @@ pipeline "correct_one_compute_disk_exceeding_max_size" {
             disk_name  = param.disk_name
             cred       = param.cred
           }
-          success_msg = "Deleted Compute Disk ${param.title}."
-          error_msg   = "Error deleting Compute Disk ${param.title}."
+          success_msg = "deleted Compute disk ${param.title}."
+          error_msg   = "Error deleting Compute disk ${param.title}."
         }
         "snapshot_and_delete_disk" = {
-          label        = "Snapshot & Delete Disk"
+          label        = "Snapshot & delete disk"
           value        = "snapshot_and_delete_disk"
           style        = local.style_alert
           pipeline_ref = pipeline.snapshot_and_delete_compute_disk
@@ -276,8 +276,8 @@ pipeline "correct_one_compute_disk_exceeding_max_size" {
             disk_name = param.disk_name
             cred      = param.cred
           }
-          success_msg = "Snapshotted & Deleted Compute Disk ${param.title}."
-          error_msg   = "Error snapshotting & deleting Compute Disk ${param.title}."
+          success_msg = "Snapshotted & deleted Compute disk ${param.title}."
+          error_msg   = "Error snapshotting & deleting Compute disk ${param.title}."
         }
       }
     }
