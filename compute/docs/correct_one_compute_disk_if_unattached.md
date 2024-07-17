@@ -1,4 +1,4 @@
-# Correct one compute disk if unattached
+# Correct one Compute disk if unattached
 
 ## Overview
 

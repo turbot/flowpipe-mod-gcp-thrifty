@@ -1,4 +1,4 @@
-# Correct one compute instance with low utilization
+# Correct one Compute instance with low utilization
 
 ## Overview
 

@@ -1,4 +1,4 @@
-# Correct one compute node group if autoscaling disabled
+# Correct one Compute node group if autoscaling disabled
 
 ## Overview
 

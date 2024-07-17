@@ -1,4 +1,4 @@
-# Correct compute disks with low usage
+# Correct Compute disks with low usage
 
 ## Overview
 

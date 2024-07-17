@@ -1,4 +1,4 @@
-# Detect & Correct compute addresses If Unattached
+# Detect & Correct Compute addresses If Unattached
 
 ## Overview
 

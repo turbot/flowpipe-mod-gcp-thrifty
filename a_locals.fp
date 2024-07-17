@@ -58,4 +58,7 @@ locals {
   gcp_pipeline_delete_storage_buckets                = gcp.pipeline.delete_storage_buckets
   gcp_pipeline_delete_all_objects_and_storage_bucket = gcp.pipeline.delete_all_objects_and_storage_bucket
   gcp_pipeline_delete_kubernetes_cluster             = gcp.pipeline.delete_kubernetes_cluster
+  gcp_pipeline_delete_alloydb_cluster                = gcp.pipeline.delete_alloydb_cluster
+  gcp_pipeline_delete_alloydb_instance               = gcp.pipeline.delete_alloydb_instance
+  gcp_pipeline_delete_redis_instance                 = gcp.pipeline.delete_redis_instance
 }

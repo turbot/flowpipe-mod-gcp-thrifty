@@ -1,4 +1,4 @@
-# Detect & correct compute instances with low utilization
+# Detect & correct Compute instances with low utilization
 
 ## Overview
 

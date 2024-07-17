@@ -1,4 +1,4 @@
-# Detect & correct compute disks with low usage
+# Detect & correct Compute disks with low usage
 
 ## Overview
 

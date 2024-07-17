@@ -1,4 +1,4 @@
-# Detect & correct compute disks exceeding max size
+# Detect & correct Compute disks exceeding max size
 
 ## Overview
 

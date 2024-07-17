@@ -1,4 +1,4 @@
-# Correct compute disk attached to stopped instances
+# Correct Compute disk attached to stopped instances
 
 ## Overview
 

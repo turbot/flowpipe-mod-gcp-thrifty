@@ -1,4 +1,4 @@
-# Detect & correct compute disk attached to stopped instances
+# Detect & correct Compute disk attached to stopped instances
 
 ## Overview
 

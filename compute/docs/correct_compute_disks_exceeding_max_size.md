@@ -1,4 +1,4 @@
-# Correct compute disks exceeding max size
+# Correct Compute disks exceeding max size
 
 ## Overview
 
