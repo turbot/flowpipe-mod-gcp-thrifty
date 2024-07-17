@@ -15,10 +15,10 @@ locals {
 }
 
 trigger "query" "detect_and_correct_alloydb_instances_long_running" {
-  title       = "Detect & correct long-running AlloyDB instances"
-  description = "Detects AlloyDB instances that have been running for too long and runs your chosen action."
-  // documentation = file("./alloydb/docs/detect_and_correct_alloydb_instances_long_running_trigger.md")
-  tags = merge(local.alloydb_common_tags, { class = "unused" })
+  title         = "Detect & correct long-running AlloyDB instances"
+  description   = "Detects AlloyDB instances that have been running for too long and runs your chosen action."
+  documentation = file("./alloydb/docs/detect_and_correct_alloydb_instances_long_running_trigger.md")
+  tags          = merge(local.alloydb_common_tags, { class = "unused" })
 
   enabled  = var.alloydb_instances_long_running_trigger_enabled
   schedule = var.alloydb_instances_long_running_trigger_schedule
@@ -34,10 +34,10 @@ trigger "query" "detect_and_correct_alloydb_instances_long_running" {
 }
 
 pipeline "detect_and_correct_alloydb_instances_long_running" {
-  title       = "Detect & correct long-running AlloyDB instances"
-  description = "Detects AlloyDB instances that have been running for too long and runs your chosen action."
-  // documentation = file("./alloydb/docs/detect_and_correct_alloydb_instances_long_running.md")
-  tags = merge(local.alloydb_common_tags, { class = "unused", type = "featured" })
+  title         = "Detect & correct long-running AlloyDB instances"
+  description   = "Detects AlloyDB instances that have been running for too long and runs your chosen action."
+  documentation = file("./alloydb/docs/detect_and_correct_alloydb_instances_long_running.md")
+  tags          = merge(local.alloydb_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
     type        = string
@@ -94,10 +94,10 @@ pipeline "detect_and_correct_alloydb_instances_long_running" {
 }
 
 pipeline "correct_alloydb_instances_long_running" {
-  title       = "Correct long-running AlloyDB instances"
-  description = "Runs corrective action on a collection of long-running AlloyDB instances."
-  // documentation = file("./alloydb/docs/correct_alloydb_instances_long_running.md")
-  tags = merge(local.alloydb_common_tags, { class = "unused" })
+  title         = "Correct long-running AlloyDB instances"
+  description   = "Runs corrective action on a collection of long-running AlloyDB instances."
+  documentation = file("./alloydb/docs/correct_alloydb_instances_long_running.md")
+  tags          = merge(local.alloydb_common_tags, { class = "unused" })
 
   param "items" {
     type = list(object({
@@ -172,10 +172,10 @@ pipeline "correct_alloydb_instances_long_running" {
 }
 
 pipeline "correct_one_alloydb_instance_long_running" {
-  title       = "Correct one long-running AlloyDB instance"
-  description = "Runs corrective action on an AlloyDB instance that has been running for too long."
-  // documentation = file("./alloydb/docs/correct_one_alloydb_instance_long_running.md")
-  tags = merge(local.alloydb_common_tags, { class = "unused" })
+  title         = "Correct one long-running AlloyDB instance"
+  description   = "Runs corrective action on an AlloyDB instance that has been running for too long."
+  documentation = file("./alloydb/docs/correct_one_alloydb_instance_long_running.md")
+  tags          = merge(local.alloydb_common_tags, { class = "unused" })
 
   param "instance_name" {
     type        = string
