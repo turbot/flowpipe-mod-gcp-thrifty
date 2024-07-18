@@ -51,8 +51,8 @@ locals {
   gcp_pipeline_stop_sql_instance                     = gcp.pipeline.stop_sql_instance
   gcp_pipeline_update_logging_bucket                 = gcp.pipeline.update_logging_bucket
   gcp_pipeline_update_storage_bucket                 = gcp.pipeline.update_storage_bucket
-  gcp_pipeline_set_machine_type                      = gcp.pipeline.set_machine_type
-  gcp_pipeline_update_node_group                     = gcp.pipeline.update_node_group
+  gcp_pipeline_set_compute_instance_machine_type     = gcp.pipeline.set_compute_instance_machine_type
+  gcp_pipeline_update_compute_node_group             = gcp.pipeline.update_compute_node_group
   gcp_pipeline_delete_vpn_gateway                    = gcp.pipeline.delete_vpn_gateway
   gcp_pipeline_delete_dataproc_cluster               = gcp.pipeline.delete_dataproc_cluster
   gcp_pipeline_delete_storage_buckets                = gcp.pipeline.delete_storage_buckets

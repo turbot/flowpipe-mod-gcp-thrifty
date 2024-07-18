@@ -350,7 +350,7 @@ pipeline "stop_downgrade_compute_instance" {
 
   step "pipeline" "downgrade_instance_type" {
     depends_on = [step.pipeline.stop_compute_instance]
-    pipeline   = local.gcp_pipeline_set_machine_type
+    pipeline   = local.gcp_pipeline_set_compute_instance_machine_type
     args = {
       instance_name = param.instance_name
       machine_type  = param.machine_type
