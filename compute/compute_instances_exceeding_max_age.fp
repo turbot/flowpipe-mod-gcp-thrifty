@@ -1,5 +1,5 @@
 locals {
-  compute_instance_long_running_query = <<-EOQ
+  compute_instances_exceeding_max_age_query = <<-EOQ
     select
       concat(name, ' [', zone, '/', project, ']') as title,
       name as instance_name,
@@ -14,29 +14,29 @@ locals {
   EOQ
 }
 
-trigger "query" "detect_and_correct_compute_instance_long_running" {
-  title         = "Detect & correct long-running Compute engine instances"
-  description   = "Identifies long-running Compute engine instances and executes the chosen action."
-  documentation = file("./compute/docs/detect_and_correct_compute_instances_long_running_trigger.md")
+trigger "query" "detect_and_correct_compute_instances_exceeding_max_age" {
+  title         = "Detect & correct Compute engine instances exceeding max age"
+  description   = "Identifies Compute engine instances exceeding max age and executes the chosen action."
+  documentation = file("./compute/docs/detect_and_correct_compute_instances_exceeding_max_age_trigger.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
-  enabled  = var.compute_instances_long_running_trigger_enabled
-  schedule = var.compute_instances_long_running_trigger_schedule
+  enabled  = var.compute_instances_exceeding_max_age_trigger_enabled
+  schedule = var.compute_instances_exceeding_max_age_trigger_schedule
   database = var.database
-  sql      = local.compute_instance_long_running_query
+  sql      = local.compute_instances_exceeding_max_age_query
 
   capture "insert" {
-    pipeline = pipeline.correct_compute_instance_long_running
+    pipeline = pipeline.correct_compute_instances_exceeding_max_age
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_compute_instance_long_running" {
-  title         = "Detect & correct long-running Compute engine instances"
-  description   = "Detects long-running Compute engine instances and runs your chosen action."
-  documentation = file("./compute/docs/detect_and_correct_compute_instances_long_running.md")
+pipeline "detect_and_correct_compute_instances_exceeding_max_age" {
+  title         = "Detect & correct Compute engine instances exceeding max age"
+  description   = "Detects Compute engine instances exceeding max age and runs your chosen action."
+  documentation = file("./compute/docs/detect_and_correct_compute_instances_exceeding_max_age.md")
   tags          = merge(local.compute_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
@@ -66,22 +66,22 @@ pipeline "detect_and_correct_compute_instance_long_running" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.compute_instances_long_running_default_action
+    default     = var.compute_instances_exceeding_max_age_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.compute_instances_long_running_enabled_actions
+    default     = var.compute_instances_exceeding_max_age_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.compute_instance_long_running_query
+    sql      = local.compute_instances_exceeding_max_age_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_compute_instance_long_running
+    pipeline = pipeline.correct_compute_instances_exceeding_max_age
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -93,10 +93,10 @@ pipeline "detect_and_correct_compute_instance_long_running" {
   }
 }
 
-pipeline "correct_compute_instance_long_running" {
-  title         = "Correct long-running Compute engine instances"
-  description   = "Executes corrective actions on long-running Compute engine instances."
-  documentation = file("./compute/docs/correct_compute_instance_long_running.md")
+pipeline "correct_compute_instances_exceeding_max_age" {
+  title         = "Correct Compute engine instances exceeding max age"
+  description   = "Executes corrective actions on Compute engine instances exceeding max age."
+  documentation = file("./compute/docs/correct_compute_instances_exceeding_max_age.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
   param "items" {
@@ -130,19 +130,19 @@ pipeline "correct_compute_instance_long_running" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.compute_instances_long_running_default_action
+    default     = var.compute_instances_exceeding_max_age_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.compute_instances_long_running_enabled_actions
+    default     = var.compute_instances_exceeding_max_age_enabled_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} long-running Compute engine instances."
+    text     = "Detected ${length(param.items)} Compute engine instances exceeding max age."
   }
 
   step "transform" "items_by_id" {
@@ -152,7 +152,7 @@ pipeline "correct_compute_instance_long_running" {
   step "pipeline" "correct_item" {
     for_each        = step.transform.items_by_id.value
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_compute_instance_long_running
+    pipeline        = pipeline.correct_one_compute_instances_exceeding_max_age
     args = {
       instance_name      = each.value.instance_name
       zone               = each.value.zone
@@ -168,10 +168,10 @@ pipeline "correct_compute_instance_long_running" {
   }
 }
 
-pipeline "correct_one_compute_instance_long_running" {
-  title         = "Correct one long-running Compute engine instance"
-  description   = "Runs corrective action on a single long-running Compute engine instance."
-  documentation = file("./compute/docs/correct_one_compute_instance_long_running.md")
+pipeline "correct_one_compute_instances_exceeding_max_age" {
+  title         = "Correct one Compute engine instance exceeding max age"
+  description   = "Runs corrective action on a single Compute engine instance exceeding max age."
+  documentation = file("./compute/docs/correct_one_compute_instances_exceeding_max_age.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
   param "cred" {
@@ -220,13 +220,13 @@ pipeline "correct_one_compute_instance_long_running" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.compute_instances_long_running_default_action
+    default     = var.compute_instances_exceeding_max_age_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.compute_instances_long_running_enabled_actions
+    default     = var.compute_instances_exceeding_max_age_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -235,7 +235,7 @@ pipeline "correct_one_compute_instance_long_running" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected long-running Compute engine instance ${param.title}."
+      detect_msg         = "Detected Compute engine instance ${param.title} exceeding max age."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -247,7 +247,7 @@ pipeline "correct_one_compute_instance_long_running" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped long-running Compute engine instance ${param.title}."
+            text     = "Skipped Compute engine instance ${param.title} exceeding max age."
           }
           success_msg = "Skipped Compute engine instance ${param.title}."
           error_msg   = "Error skipping Compute engine instance ${param.title}."
@@ -285,13 +285,13 @@ pipeline "correct_one_compute_instance_long_running" {
   }
 }
 
-variable "compute_instances_long_running_trigger_enabled" {
+variable "compute_instances_exceeding_max_age_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
 }
 
-variable "compute_instances_long_running_trigger_schedule" {
+variable "compute_instances_exceeding_max_age_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "The schedule on which to run the trigger if enabled."
@@ -303,13 +303,13 @@ variable "compute_instances_exceeding_max_age_days" {
   default     = 30
 }
 
-variable "compute_instances_long_running_default_action" {
+variable "compute_instances_exceeding_max_age_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
   default     = "notify"
 }
 
-variable "compute_instances_long_running_enabled_actions" {
+variable "compute_instances_exceeding_max_age_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions to provide to approvers for selection."
   default     = ["skip", "stop_instance", "terminate_instance"]

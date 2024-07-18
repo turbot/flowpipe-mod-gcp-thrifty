@@ -169,7 +169,7 @@ pipeline "correct_compute_node_groups_without_autoscaling" {
 
 pipeline "correct_one_compute_node_group_without_autoscaling" {
   title         = "Correct one Compute node group without autoscaling"
-  description   = "Runs corrective action on an Compute node group autoscaling disabled."
+  description   = "Runs corrective action on an Compute node group without autoscaling."
   documentation = file("./compute/docs/correct_one_compute_node_group_without_autoscaling.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 

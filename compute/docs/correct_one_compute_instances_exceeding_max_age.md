@@ -6,4 +6,4 @@ Compute instances can be quite costly to retain, it is also likely that after a 
 
 This pipeline allows you to specify a single compute instance and then either send a notification or attempt to perform a predefined corrective action.
 
-Whilst it is possible to utilise this pipeline standalone, it is usually called from the [correct_compute_instances_long_running pipeline](https://hub.flowpipe.io/mods/turbot/gcp_thrifty/pipelines/gcp_thrifty.pipeline.correct_compute_instances_long_running).
+Whilst it is possible to utilise this pipeline standalone, it is usually called from the [correct_compute_instances_exceeding_max_age pipeline](https://hub.flowpipe.io/mods/turbot/gcp_thrifty/pipelines/gcp_thrifty.pipeline.correct_compute_instances_exceeding_max_age).
