@@ -152,7 +152,7 @@ pipeline "correct_compute_instances_exceeding_max_age" {
   step "pipeline" "correct_item" {
     for_each        = step.transform.items_by_id.value
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_compute_instances_exceeding_max_age
+    pipeline        = pipeline.correct_one_compute_instance_exceeding_max_age
     args = {
       instance_name      = each.value.instance_name
       zone               = each.value.zone
@@ -168,10 +168,10 @@ pipeline "correct_compute_instances_exceeding_max_age" {
   }
 }
 
-pipeline "correct_one_compute_instances_exceeding_max_age" {
+pipeline "correct_one_compute_instance_exceeding_max_age" {
   title         = "Correct one Compute engine instance exceeding max age"
   description   = "Runs corrective action on a single Compute engine instance exceeding max age."
-  documentation = file("./compute/docs/correct_one_compute_instances_exceeding_max_age.md")
+  documentation = file("./compute/docs/correct_one_compute_instance_exceeding_max_age.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
   param "cred" {
