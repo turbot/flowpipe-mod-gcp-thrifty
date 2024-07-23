@@ -36,7 +36,7 @@ pipeline "detect_and_correct_dataproc_clusters_without_autoscaling" {
   title         = "Detect & correct Dataproc clusters without autoscaling"
   description   = "Detects Dataproc clusters without autoscaling enabled and runs your chosen action."
   documentation = file("./pipelines/dataproc/docs/detect_and_correct_dataproc_clusters_without_autoscaling.md")
-  tags          = merge(local.dataproc_common_tags, { class = "unused" })
+  tags          = merge(local.dataproc_common_tags, { class = "unused", type = "featured" })
   param "database" {
     type        = string
     description = local.description_database

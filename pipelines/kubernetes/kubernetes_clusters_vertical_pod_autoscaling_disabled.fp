@@ -36,7 +36,7 @@ pipeline "detect_and_correct_kubernetes_clusters_vertical_pod_autoscaling_disabl
   title         = "Detect & correct GKE clusters without vertical pod autoscaling"
   description   = "Detects GKE clusters without vertical pod autoscaling enabled and runs your chosen action."
   documentation = file("./pipelines/kubernetes/docs/detect_and_correct_kubernetes_clusters_vertical_pod_autoscaling_disabled.md")
-  tags          = merge(local.kubernetes_common_tags, { class = "unused" })
+  tags          = merge(local.kubernetes_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
     type        = string
