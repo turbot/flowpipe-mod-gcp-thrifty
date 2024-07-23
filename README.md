@@ -69,10 +69,10 @@ Each variable has a default defined in its source file, e.g, `logging/logging_bu
 The easiest approach is to setup your vars file, starting with the sample:
 
 ```sh
-cp thrifty.fpvars.example thrifty.fpvars
-vi thrifty.fpvars
+cp flowpipe.fpvars.example flowpipe.fpvars
+vi flowpipe.fpvars
 
-flowpipe pipeline run detect_and_correct_compute_disks_exceeding_max_size --var-file=thrifty.fpvars
+flowpipe pipeline run detect_and_correct_compute_disks_exceeding_max_size --var-file=flowpipe.fpvars
 ```
 
 Alternatively, you can pass variables on the command line:
