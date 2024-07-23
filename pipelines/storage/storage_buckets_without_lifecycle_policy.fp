@@ -35,7 +35,7 @@ pipeline "detect_and_correct_storage_buckets_without_lifecycle_policy" {
   title         = "Detect & correct Storage buckets without lifecycle policies"
   description   = "Detects Storage buckets without lifecycle policies and runs your chosen action."
   documentation = file("./pipelines/storage/docs/detect_and_correct_storage_buckets_without_lifecycle_policy.md")
-  tags          = merge(local.storage_common_tags, { class = "unused" })
+  tags          = merge(local.storage_common_tags, { class = "unused", type = "featured" })
 
   param "database" {
     type        = string
