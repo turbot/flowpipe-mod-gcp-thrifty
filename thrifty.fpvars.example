@@ -1,6 +1,105 @@
 # Core options
-database           = "postgres:#steampipe@localhost:9193/steampipe"
-notifier           = "default"
-notification_level = "info"
-approvers          = []
-max_concurrency    = 1
+# database           = "postgres:#steampipe@localhost:9193/steampipe"
+# notifier           = "default"
+# notification_level = "info"
+# approvers          = ["default"]
+# max_concurrency    = 1
+
+# alarm_threshold = 25
+
+# compute_addresses_if_unattached_default_action = notify
+# compute_addresses_if_unattached_enabled_actions = [skip delete]
+# compute_addresses_if_unattached_trigger_enabled = FALSE
+# compute_addresses_if_unattached_trigger_schedule = 15m
+
+# compute_disks_attached_to_stopped_instances_default_action = notify
+# compute_disks_attached_to_stopped_instances_enabled_actions = [skip detach_disk detach_and_delete_compute_disk snapshot_detach_and_delete_disk]
+# compute_disks_attached_to_stopped_instances_trigger_enabled = FALSE
+# compute_disks_attached_to_stopped_instances_trigger_schedule = 15m
+
+# compute_disks_exceeding_max_size = 100
+# compute_disks_exceeding_max_size_default_action = notify
+# compute_disks_exceeding_max_size_enabled_actions = [skip delete_disk snapshot_and_delete_disk]
+# compute_disks_exceeding_max_size_trigger_enabled = FALSE
+# compute_disks_exceeding_max_size_trigger_schedule = 15m
+
+# compute_disks_if_unattached_default_action = notify
+# compute_disks_if_unattached_enabled_actions = [skip delete_compute_disk snapshot_and_delete_compute_disk]
+# compute_disks_if_unattached_trigger_enabled = FALSE
+# compute_disks_if_unattached_trigger_schedule = 15m
+
+# compute_disks_with_low_usage_default_action = notify
+# compute_disks_with_low_usage_enabled_actions = [skip delete_disk snapshot_and_delete_compute_disk]
+# compute_disks_with_low_usage_min = 100
+# compute_disks_with_low_usage_trigger_enabled = FALSE
+# compute_disks_with_low_usage_trigger_schedule = 15m
+
+# compute_instances_exceeding_max_age_days = 30
+
+# compute_instances_large_allowed_types = [custom-1-1024 custom-2-2048 custom-4-4096 custom-8-8192 custom-16-16384 custom-32-32768
+# compute_instances_large_default_action = notify
+# compute_instances_large_enabled_actions = [skip stop_instance terminate_instance]
+# compute_instances_large_trigger_enabled = FALSE
+# compute_instances_large_trigger_schedule = 15m
+
+# compute_instances_long_running_default_action = notify
+# compute_instances_long_running_enabled_actions = [skip stop_instance terminate_instance]
+# compute_instances_long_running_trigger_enabled = FALSE
+# compute_instances_long_running_trigger_schedule = 15m
+
+# compute_instances_with_low_utilization_avg_cpu_utilization = 20
+# compute_instances_with_low_utilization_default_action = notify
+# compute_instances_with_low_utilization_enabled_actions = [skip stop_instance stop_downgrade_instance_type]
+# compute_instances_with_low_utilization_trigger_enabled = FALSE
+# compute_instances_with_low_utilization_trigger_schedule = 15m
+
+# compute_node_group_max_nodes = 10
+# compute_node_groups_if_autoscaling_disabled_default_action = notify
+# compute_node_groups_if_autoscaling_disabled_enabled_actions = [skip enable_autoscaling_policy]
+# compute_node_groups_if_autoscaling_disabled_trigger_enabled = FALSE
+# compute_node_groups_if_autoscaling_disabled_trigger_schedule = 15m
+
+# compute_snapshots_exceeding_max_age_days = 15
+# compute_snapshots_exceeding_max_age_default_action = notify
+# compute_snapshots_exceeding_max_age_enabled_actions = [skip delete_snapshot]
+# compute_snapshots_exceeding_max_age_trigger_enabled = FALSE
+# compute_snapshots_exceeding_max_age_trigger_schedule = 15m
+
+# dataproc_clusters_autoscaling_disabled_default_action = notify
+# dataproc_clusters_autoscaling_disabled_enabled_actions = [skip delete_dataproc_cluster_with_autoscaling_disabled]
+# dataproc_clusters_autoscaling_disabled_trigger_enabled = FALSE
+# dataproc_clusters_autoscaling_disabled_trigger_schedule = 15m
+
+# kubernetes_clusters_vertical_pod_autoscaling_disabled_default_action = notify
+# kubernetes_clusters_vertical_pod_autoscaling_disabled_enabled_actions = [skip delete_kubernetes_cluster]
+# kubernetes_clusters_vertical_pod_autoscaling_disabled_trigger_enabled = FALSE
+# kubernetes_clusters_vertical_pod_autoscaling_disabled_trigger_schedule = 15m
+
+# logging_bucket_max_retention_days = 20
+# logging_buckets_with_high_retention_default_action = notify
+# logging_buckets_with_high_retention_enabled_actions = [skip update_retention]
+# logging_buckets_with_high_retention_trigger_enabled = FALSE
+# logging_buckets_with_high_retention_trigger_schedule = 15m
+
+# machine_type = e2-micro
+# retention_days = 10
+
+# sql_db_instances_with_low_connection_count_default_action = notify
+# sql_db_instances_with_low_connection_count_enabled_actions = [skip delete_instance]
+# sql_db_instances_with_low_connection_count_trigger_enabled = FALSE
+# sql_db_instances_with_low_connection_count_trigger_schedule = 15m
+
+# sql_db_instances_with_low_cpu_utilization_default_action = notify
+# sql_db_instances_with_low_cpu_utilization_enabled_actions = [skip stop_sql_instance delete_instance]
+# sql_db_instances_with_low_cpu_utilization_trigger_enabled = FALSE
+# sql_db_instances_with_low_cpu_utilization_trigger_schedule = 15m
+
+# storage_buckets_without_lifecycle_policy_default_action = notify
+# storage_buckets_without_lifecycle_policy_enabled_actions = [skip delete_storage_bucket delete_all_objects_and_storage_bucket]
+# storage_buckets_without_lifecycle_policy_trigger_enabled = FALSE
+# storage_buckets_without_lifecycle_policy_trigger_schedule = 15m
+
+# vpn_gateways_with_no_tunnels_default_action = notify
+# vpn_gateways_with_no_tunnels_enabled_actions = [skip delete_vpn_gateway]
+# vpn_gateways_with_no_tunnels_trigger_enabled = FALSE
+# vpn_gateways_with_no_tunnels_trigger_schedule = 15m
