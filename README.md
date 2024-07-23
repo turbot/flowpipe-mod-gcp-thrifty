@@ -107,32 +107,79 @@ flowpipe pipeline list | grep "detect_and_correct"
 Then run your chosen pipeline:
 
 ```sh
-flowpipe pipeline run detect_and_correct_compute_disks_attached_to_stopped_instances
+flowpipe pipeline run detect_and_correct_compute_disks_exceeding_max_size
 ```
 
-By default the above approach would find the relevant resources and then send a message to your configured [notifier](https://flowpipe.io/docs/reference/config-files/notifier).
+This will then run the pipeline and depending on your configured running mode; perform the relevant action(s), there are 3 running modes:
+- Wizard
+- Notify
+- Automatic
 
-However;  you can request via an [Input Step](https://flowpipe.io/docs/build/input) a corrective action to run against each detection result; this behavior is achieved by setting `approvers` either as a variable or for a one-off approach, by passing `approvers` as an argument.
+#### Wizard
+This is the `default` running mode, allowing for a hands-on approach to approving changes to resources by prompting for [input](https://flowpipe.io/docs/build/input) for each detected resource.
 
-> Note: This approach requires running `flowpipe server` as it uses an `input` step.
+Whilst the out of the box default is to run the workflow directly in the terminal. You can use Flowpipe [server](https://flowpipe.io/docs/run/server) and [external integrations](https://flowpipe.io/docs/build/input#create-an-integration) to prompt in `http`, `slack`, `teams`, etc.
+
+#### Notify
+This mode as the name implies is used purely to report detections via notifications either directly to your terminal when running in client mode or via another configured [notifier](https://flowpipe.io/docs/reference/config-files/notifier) when running in server mode for each detected resource.
+
+To run in `notify` mode, you will need to set the `approvers` variable to an empty list `[]` and ensure the resource-specific `default_action` variable is set to `notify`, either in your fpvars file
+
+```hcl
+# example.fpvars
+approvers = []
+compute_disks_exceeding_max_size_default_action = "notify"
+```
+
+or pass the `approvers` and `default_action` arguments on the command-line.
 
 ```sh
-flowpipe pipeline run detect_and_correct_compute_disks_attached_to_stopped_instances --host local --arg='approvers=["default"]'
+flowpipe pipeline run detect_and_correct_compute_disks_exceeding_max_size --arg='default_action=notify' --arg='approvers=[]'
 ```
 
-If you're happy to just apply the same action against all detected items, you can apply them without the `input` step by overriding the `default_action` argument (or the detection specific variable).
+#### Automatic
+This behavior allows for a hands-off approach to remediating resources.
+
+To run in `automatic` mode, you will need to set the `approvers` variable to an empty list `[]` and the the resource-specific `default_action` variable to one of the available options.
+
+```hcl
+# example.fpvars
+approvers = []
+compute_disks_exceeding_max_size_default_action = "snapshot_and_delete_disk"
+```
+
+or pass the `approvers` and `default_action` argument on the command-line.
 
 ```sh
-flowpipe pipeline run detect_and_correct_compute_disks_attached_to_stopped_instances --arg='default_action="snapshot_and_detach_and_delete_disk"'
+flowpipe pipeline run detect_and_correct_compute_disks_exceeding_max_size --arg='approvers=[] --arg='default_action=snapshot_and_delete_disk'
 ```
 
-However; if you have configured a non-empty list for your `approvers` variable, you will need to override it as below:
+To further enhance this approach, you can enable the pipelines corresponding [query trigger](#running-query-triggers) to run completely hands-off.
+
+### Running Query Triggers
+
+> Note: Query triggers require Flowpipe running in [server](https://flowpipe.io/docs/run/server) mode.
+
+Each `detect_and_correct` pipeline comes with a corresponding [Query Trigger](https://flowpipe.io/docs/flowpipe-hcl/trigger/query), these are _disabled_ by default allowing for you to _enable_ and _schedule_ them as desired.
+
+Let's begin by looking at how to set-up a Query Trigger to automatically resolve our Compute disks that have exceeded the maximum allowed size.
+
+Firsty, we need to update our `example.fpvars` file to add or update the following variables - if we want to run our remediation `hourly` and automatically `apply` the corrections:
+
+```hcl
+# example.fpvars
+compute_disks_exceeding_max_size_trigger_enabled  = true
+compute_disks_exceeding_max_size_trigger_schedule = "1h"
+compute_disks_exceeding_max_size_default_action   = "snapshot_and_delete_disk"
+```
+
+Now we'll need to start up our Flowpipe server:
 
 ```sh
-flowpipe pipeline run detect_and_correct_compute_disks_attached_to_stopped_instances --arg='approvers=[]' --arg='default_action="snapshot_and_detach_and_delete_disk"'
+flowpipe server --var-file=example.fpvars
 ```
 
-Finally, each detection pipeline has a corresponding [Query Trigger](https://flowpipe.io/docs/flowpipe-hcl/trigger/query), these are disabled by default allowing for you to configure only those which are required, see the [docs](https://hub.flowpipe.io/mods/turbot/gcp_thrifty/triggers) for more information.
+This will activate every hour and detect Compute Snapshots exceeding maximum age and apply the corrections without further interaction!
 
 ## Open Source & Contributing
 
