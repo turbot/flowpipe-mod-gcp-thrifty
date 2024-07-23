@@ -1,10 +1,10 @@
-# Detect & correct compute node groups if autoscaling disabled
+# Detect & correct AlloyDB clusters exceeding max age
 
 ## Overview
 
-Compute node groups can be quite costly to retain, it is also likely that after a certain point in time they're no longer required and should be cleaned up to prevent further costs.
+AlloyDB clusters can be costly to run, especially if they're rarely used, clusters exceeding a certain age should be reviewed to determine if they're still required.
 
-This query trigger detects compute node groups that have autoscaling disabled and then either sends a notification or attempts to perform a predefined corrective action.
+This pipeline detects AlloyDB clusters exceeding a certain age and then either sends a notification or attempts to perform a predefined corrective action.
 
 ## Getting Started
 
@@ -13,7 +13,7 @@ This control will work out-of-the-box with some sensible defaults (configurable 
 You should be able to simply run the following command in your terminal:
 
 ```sh
-flowpipe pipeline run detect_and_correct_compute_node_groups_if_autoscaling_disabled
+flowpipe pipeline run detect_and_correct_alloydb_clusters_exceeding_max_age
 ```
 
 You should now receive notification messages for the detections in your configured [notifier](https://flowpipe.io/docs/reference/config-files/notifier).
@@ -38,7 +38,7 @@ flowpipe server
 
 You can then run the command below:
 ```sh
-flowpipe pipeline run detect_and_correct_compute_node_groups_if_autoscaling_disabled --host local --arg='approvers=["default"]'
+flowpipe pipeline run detect_and_correct_alloydb_clusters_exceeding_max_age --host local --arg='approvers=["default"]'
 ```
 
 This will prompt for an action for each detected resource and then attempt to perform the chosen action upon receipt of input.
@@ -50,13 +50,13 @@ You can also decide to bypass asking for decision and just automatically apply t
 You can automatically apply a specific action without the need for running a Flowpipe Server and asking for a decision by setting the `default_action` parameter:
 
 ```sh
-flowpipe pipeline run detect_and_correct_compute_node_groups_if_autoscaling_disabled --arg='default_action="enable_autoscaling_policy"'
+flowpipe pipeline run detect_and_correct_alloydb_clusters_exceeding_max_age --arg='default_action="delete_alloydb_cluster"'
 ```
 
 However; if you have configured a non-empty list for your `approvers` variable, you will need to override it as below:
 
 ```sh
-flowpipe pipeline run detect_and_correct_compute_node_groups_if_autoscaling_disabled --arg='approvers=[]' --arg='default_action="enable_autoscaling_policy"'
+flowpipe pipeline run detect_and_correct_alloydb_clusters_exceeding_max_age --arg='approvers=[]' --arg='default_action="delete_alloydb_cluster"'
 ```
 
-This will attempt to apply the action to every detected item, if you're happy with this approach you could have this occur mmore frequently by either scheduling the command by yourself or enabling the associated [Query Trigger](https://hub.flowpipe.io/mods/turbot/gcp_thrifty/triggers/gcp_thrifty.trigger.query.detect_and_correct_compute_node_groups_if_autoscaling_disabled).
+This will attempt to apply the action to every detected item, if you're happy with this approach you could have this occur mmore frequently by either scheduling the command by yourself or enabling the associated [Query Trigger](https://hub.flowpipe.io/mods/turbot/gcp_thrifty/triggers/gcp_thrifty.trigger.query.detect_and_correct_alloydb_clusters_exceeding_max_age).

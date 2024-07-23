@@ -1,42 +1,43 @@
 locals {
-  dataproc_clusters_autoscaling_disabled_query = <<-EOQ
+  alloydb_clusters_exceeding_max_age_query = <<-EOQ
   select
-    concat(cluster_name, ' [', location, '/', project, ']') as title,
-    cluster_name as name,
+    concat(display_name, ' [', location, '/', project, ']') as title,
+    display_name as name,
     _ctx ->> 'connection_name' as cred,
     location,
     project
   from
-    gcp_dataproc_cluster
+    gcp_alloydb_cluster
   where
-    config -> 'autoscalingConfig' -> 'policyUri' is null
+    date_part('day', now()-create_time) > ${var.alloydb_clusters_exceeding_max_age_days};
   EOQ
 }
 
-trigger "query" "detect_and_correct_dataproc_clusters_autoscaling_disabled" {
-  title         = "Detect & correct Dataproc clusters without autoscaling"
-  description   = "Identifies Dataproc clusters without autoscaling enabled and executes the chosen action."
-  documentation = file("./dataproc/docs/detect_and_correct_dataproc_clusters_autoscaling_disabled_trigger.md")
-  tags          = merge(local.dataproc_common_tags, { class = "unused" })
+trigger "query" "detect_and_correct_alloydb_clusters_exceeding_max_age" {
+  title         = "Detect & correct AlloyDB clusters exceeding max age"
+  description   = "Detects AlloyDB clusters exceeding max age and runs your chosen action."
+  documentation = file("./alloydb/docs/detect_and_correct_alloydb_clusters_exceeding_max_age_trigger.md")
+  tags          = merge(local.alloydb_common_tags, { class = "unused" })
 
-  enabled  = var.dataproc_clusters_autoscaling_disabled_trigger_enabled
-  schedule = var.dataproc_clusters_autoscaling_disabled_trigger_schedule
+  enabled  = var.alloydb_clusters_exceeding_max_age_trigger_enabled
+  schedule = var.alloydb_clusters_exceeding_max_age_trigger_schedule
   database = var.database
-  sql      = local.dataproc_clusters_autoscaling_disabled_query
+  sql      = local.alloydb_clusters_exceeding_max_age_query
 
   capture "insert" {
-    pipeline = pipeline.correct_dataproc_clusters_autoscaling_disabled
+    pipeline = pipeline.correct_alloydb_clusters_exceeding_max_age
     args = {
       items = self.inserted_rows
     }
   }
 }
 
-pipeline "detect_and_correct_dataproc_clusters_autoscaling_disabled" {
-  title         = "Detect & correct Dataproc clusters without autoscaling"
-  description   = "Detects Dataproc clusters without autoscaling enabled and runs your chosen action."
-  documentation = file("./dataproc/docs/detect_and_correct_dataproc_clusters_autoscaling_disabled.md")
-  tags          = merge(local.dataproc_common_tags, { class = "unused" })
+pipeline "detect_and_correct_alloydb_clusters_exceeding_max_age" {
+  title         = "Detect & correct AlloyDB clusters exceeding max age"
+  description   = "Detects AlloyDB clusters exceeding max age and runs your chosen action."
+  documentation = file("./alloydb/docs/detect_and_correct_alloydb_clusters_exceeding_max_age.md")
+  tags          = merge(local.alloydb_common_tags, { class = "unused", type = "featured" })
+
   param "database" {
     type        = string
     description = local.description_database
@@ -64,22 +65,22 @@ pipeline "detect_and_correct_dataproc_clusters_autoscaling_disabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.dataproc_clusters_autoscaling_disabled_default_action
+    default     = var.alloydb_clusters_exceeding_max_age_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.dataproc_clusters_autoscaling_disabled_enabled_actions
+    default     = var.alloydb_clusters_exceeding_max_age_enabled_actions
   }
 
   step "query" "detect" {
     database = param.database
-    sql      = local.dataproc_clusters_autoscaling_disabled_query
+    sql      = local.alloydb_clusters_exceeding_max_age_query
   }
 
   step "pipeline" "respond" {
-    pipeline = pipeline.correct_dataproc_clusters_autoscaling_disabled
+    pipeline = pipeline.correct_alloydb_clusters_exceeding_max_age
     args = {
       items              = step.query.detect.rows
       notifier           = param.notifier
@@ -91,20 +92,21 @@ pipeline "detect_and_correct_dataproc_clusters_autoscaling_disabled" {
   }
 }
 
-pipeline "correct_dataproc_clusters_autoscaling_disabled" {
-  title         = "Correct Dataproc clusters without autoscaling"
-  description   = "Executes corrective actions on Dataproc clusters without autoscaling enabled."
-  documentation = file("./dataproc/docs/correct_dataproc_clusters_autoscaling_disabled.md")
-  tags          = merge(local.dataproc_common_tags, { class = "unused" })
+pipeline "correct_alloydb_clusters_exceeding_max_age" {
+  title         = "Correct AlloyDB clusters exceeding max age"
+  description   = "Runs corrective action on a collection of AlloyDB clusters exceeding max age."
+  documentation = file("./alloydb/docs/correct_alloydb_clusters_exceeding_max_age.md")
+  tags          = merge(local.alloydb_common_tags, { class = "unused" })
 
   param "items" {
     type = list(object({
       title    = string
-      cred     = string
       name     = string
       location = string
       project  = string
+      cred     = string
     }))
+    description = local.description_items
   }
 
   param "notifier" {
@@ -128,31 +130,35 @@ pipeline "correct_dataproc_clusters_autoscaling_disabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.dataproc_clusters_autoscaling_disabled_default_action
+    default     = var.alloydb_clusters_exceeding_max_age_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.dataproc_clusters_autoscaling_disabled_enabled_actions
+    default     = var.alloydb_clusters_exceeding_max_age_enabled_actions
   }
 
   step "message" "notify_detection_count" {
     if       = var.notification_level == local.level_verbose
     notifier = notifier[param.notifier]
-    text     = "Detected ${length(param.items)} Dataproc clusters without autoscaling."
+    text     = "Detected ${length(param.items)} AlloyDB clusters exceeding maximum age."
+  }
+
+  step "transform" "items_by_id" {
+    value = { for row in param.items : row.title => row }
   }
 
   step "pipeline" "correct_item" {
-    for_each        = { for item in param.items : item.title => item }
+    for_each        = step.transform.items_by_id.value
     max_concurrency = var.max_concurrency
-    pipeline        = pipeline.correct_one_dataproc_cluster_autoscaling_disabled
+    pipeline        = pipeline.correct_one_alloydb_cluster_exceeding_max_age
     args = {
-      title              = each.value.title
       name               = each.value.name
-      cred               = each.value.cred
-      location           = each.value.location
       project            = each.value.project
+      location           = each.value.location
+      cred               = each.value.cred
+      title              = each.value.title
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -162,15 +168,20 @@ pipeline "correct_dataproc_clusters_autoscaling_disabled" {
   }
 }
 
-pipeline "correct_one_dataproc_cluster_autoscaling_disabled" {
-  title         = "Correct one Dataproc cluster without autoscaling"
-  description   = "Runs corrective action on a single Dataproc cluster without autoscaling enabled."
-  documentation = file("./dataproc/docs/correct_one_dataproc_cluster_autoscaling_disabled.md")
-  tags          = merge(local.dataproc_common_tags, { class = "unused" })
+pipeline "correct_one_alloydb_cluster_exceeding_max_age" {
+  title         = "Correct one AlloyDB cluster exceeding max age"
+  description   = "Runs corrective action on an AlloyDB cluster exceeding max age."
+  documentation = file("./alloydb/docs/correct_one_alloydb_cluster_exceeding_max_age.md")
+  tags          = merge(local.alloydb_common_tags, { class = "unused" })
 
-  param "cred" {
+  param "name" {
     type        = string
-    description = local.description_credential
+    description = "The name of the AlloyDB cluster."
+  }
+
+  param "project" {
+    type        = string
+    description = local.description_project
   }
 
   param "title" {
@@ -178,19 +189,14 @@ pipeline "correct_one_dataproc_cluster_autoscaling_disabled" {
     description = local.description_title
   }
 
-  param "name" {
+  param "cred" {
     type        = string
-    description = "The name of the Dataproc cluster."
+    description = local.description_credential
   }
 
   param "location" {
     type        = string
     description = local.description_location
-  }
-
-  param "project" {
-    type        = string
-    description = local.description_project
   }
 
   param "notifier" {
@@ -214,13 +220,13 @@ pipeline "correct_one_dataproc_cluster_autoscaling_disabled" {
   param "default_action" {
     type        = string
     description = local.description_default_action
-    default     = var.dataproc_clusters_autoscaling_disabled_default_action
+    default     = var.alloydb_clusters_exceeding_max_age_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
-    default     = var.dataproc_clusters_autoscaling_disabled_enabled_actions
+    default     = var.alloydb_clusters_exceeding_max_age_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -229,7 +235,7 @@ pipeline "correct_one_dataproc_cluster_autoscaling_disabled" {
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
-      detect_msg         = "Detected Dataproc cluster ${param.title} without autoscaling."
+      detect_msg         = "Detected AlloyDB cluster ${param.title} exceeding maximum age."
       default_action     = param.default_action
       enabled_actions    = param.enabled_actions
       actions = {
@@ -241,50 +247,56 @@ pipeline "correct_one_dataproc_cluster_autoscaling_disabled" {
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
-            text     = "Skipped Dataproc cluster ${param.title} without autoscaling."
+            text     = "Skipped AlloyDB cluster ${param.title} exceeding maximum age."
           }
-          success_msg = "Skipped Dataproc cluster ${param.title}."
-          error_msg   = "Error skipping Dataproc cluster ${param.title}."
+          success_msg = ""
+          error_msg   = ""
         },
-        "delete_dataproc_cluster_with_autoscaling_disabled" = {
-          label        = "Delete Dataproc Cluster"
-          value        = "delete_dataproc_cluster_with_autoscaling_disabled"
+        "delete_alloydb_cluster" = {
+          label        = "Delete AlloyDB Cluster"
+          value        = "delete_alloydb_cluster"
           style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_delete_dataproc_cluster
+          pipeline_ref = local.gcp_pipeline_delete_alloydb_cluster
           pipeline_args = {
             cluster_name = param.name
-            cred         = param.cred
             project_id   = param.project
+            cred         = param.cred
             region       = param.location
           }
-          success_msg = "Deleted Dataproc cluster ${param.title}."
-          error_msg   = "Error deleting Dataproc cluster ${param.title}."
+          success_msg = "Deleted AlloyDB cluster ${param.title}."
+          error_msg   = "Error deleting AlloyDB cluster ${param.title}."
         }
       }
     }
   }
 }
 
-variable "dataproc_clusters_autoscaling_disabled_trigger_enabled" {
+variable "alloydb_clusters_exceeding_max_age_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
 }
 
-variable "dataproc_clusters_autoscaling_disabled_trigger_schedule" {
+variable "alloydb_clusters_exceeding_max_age_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "The schedule on which to run the trigger if enabled."
 }
 
-variable "dataproc_clusters_autoscaling_disabled_default_action" {
+variable "alloydb_clusters_exceeding_max_age_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
   default     = "notify"
 }
 
-variable "dataproc_clusters_autoscaling_disabled_enabled_actions" {
+variable "alloydb_clusters_exceeding_max_age_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "delete_dataproc_cluster_with_autoscaling_disabled"]
+  default     = ["skip", "delete_alloydb_cluster"]
+}
+
+variable "alloydb_clusters_exceeding_max_age_days" {
+  type        = number
+  description = "The maximum number of days AlloyDB clusters can be retained."
+  default     = 15
 }

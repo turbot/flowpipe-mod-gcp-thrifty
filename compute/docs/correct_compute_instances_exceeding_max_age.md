@@ -7,5 +7,5 @@ Compute instances can be quite costly to retain, it is also likely that after a 
 This pipeline allows you to specify a collection of compute instances and then either send notifications or attempt to perform a predefined corrective action upon the collection.
 
 Whilst it is possible to utilise this pipeline standalone, it is usually called from either:
-- [detect_and_correct_compute_instances_long_running pipeline](https://hub.flowpipe.io/mods/turbot/gcp_thrifty/pipelines/gcp_thrifty.pipeline.detect_and_correct_compute_instances_long_running)
-- [detect_and_correct_compute_instances_long_running trigger](https://hub.flowpipe.io/mods/turbot/gcp_thrifty/triggers/gcp_thrifty.trigger.query.detect_and_correct_compute_instances_long_running)
+- [detect_and_correct_compute_instances_exceeding_max_age pipeline](https://hub.flowpipe.io/mods/turbot/gcp_thrifty/pipelines/gcp_thrifty.pipeline.detect_and_correct_compute_instances_exceeding_max_age)
+- [detect_and_correct_compute_instances_exceeding_max_age trigger](https://hub.flowpipe.io/mods/turbot/gcp_thrifty/triggers/gcp_thrifty.trigger.query.detect_and_correct_compute_instances_exceeding_max_age)
