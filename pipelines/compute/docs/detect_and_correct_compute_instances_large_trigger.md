@@ -8,7 +8,7 @@ This query trigger detects large Compute instances and then either sends a notif
 
 ### Getting Started
 
-By default, this trigger is disabled, however it can be configred by [setting the below variables](https://flowpipe.io/docs/build/mod-variables#passing-input-variables)
+By default, this trigger is disabled, however it can be configured by [setting the below variables](https://flowpipe.io/docs/build/mod-variables#passing-input-variables)
 - `compute_instances_large_trigger_enabled` should be set to `true` as the default is `false`.
 - `compute_instances_large_trigger_schedule` should be set to your desired running [schedule](https://flowpipe.io/docs/flowpipe-hcl/trigger/schedule#more-examples)
 - `compute_instances_large_default_action` should be set to your desired action (i.e. `"notify"` for notifications or `"terminate_instance"` to delete the instance).
