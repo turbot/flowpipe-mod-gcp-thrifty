@@ -8,7 +8,7 @@ This query trigger detects compute node groups that have autoscaling disabled an
 
 ### Getting Started
 
-By default, this trigger is disabled, however it can be configred by [setting the below variables](https://flowpipe.io/docs/build/mod-variables#passing-input-variables)
+By default, this trigger is disabled, however it can be configured by [setting the below variables](https://flowpipe.io/docs/build/mod-variables#passing-input-variables)
 - `compute_node_groups_without_autoscaling_trigger_enabled` should be set to `true` as the default is `false`.
 - `compute_node_groups_without_autoscaling_trigger_schedule` should be set to your desired running [schedule](https://flowpipe.io/docs/flowpipe-hcl/trigger/schedule#more-examples)
 - `compute_node_groups_without_autoscaling_default_action` should be set to your desired action (i.e. `"notify"` for notifications or `"enable_autoscaling_policy"` to enable autoscaling policy).

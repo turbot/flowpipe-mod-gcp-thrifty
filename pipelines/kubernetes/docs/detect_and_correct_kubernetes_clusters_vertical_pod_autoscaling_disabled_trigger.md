@@ -8,7 +8,7 @@ This pipeline detects Kubernetes clusters that have Vertical Pod Autoscaling dis
 
 ## Getting Started
 
-By default, this trigger is disabled, however it can be configred by [setting the below variables](https://flowpipe.io/docs/build/mod-variables#passing-input-variables)
+By default, this trigger is disabled, however it can be configured by [setting the below variables](https://flowpipe.io/docs/build/mod-variables#passing-input-variables)
 
 - `kubernetes_clusters_vertical_pod_autoscaling_disabled_trigger_enabled` should be set to `true` as the default is `false`.
 

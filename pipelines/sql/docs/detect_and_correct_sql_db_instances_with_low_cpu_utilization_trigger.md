@@ -8,7 +8,7 @@ This pipeline detects SQL instances with low average daily CPU utilization and t
 
 ## Getting Started
 
-By default, this trigger is disabled, however it can be configred by [setting the below variables](https://flowpipe.io/docs/build/mod-variables#passing-input-variables)
+By default, this trigger is disabled, however it can be configured by [setting the below variables](https://flowpipe.io/docs/build/mod-variables#passing-input-variables)
 - `sql_db_instances_with_low_cpu_utilization_trigger_enabled` should be set to `true` as the default is `false`.
 - `sql_db_instances_with_low_cpu_utilization_trigger_schedule` should be set to your desired running [schedule](https://flowpipe.io/docs/flowpipe-hcl/trigger/schedule#more-examples)
 - `sql_db_instances_with_low_cpu_utilization_default_action` should be set to your desired action (i.e. `"notify"` for notifications or `"delete_instance"` to delete the instance or `"stop_sql_instance"` to stop the instance).
