@@ -35,7 +35,7 @@ pipeline "detect_and_correct_sql_db_instances_exceeding_max_age" {
   title         = "Detect & correct SQL database instances exceeding max age"
   description   = "Detects SQL database instances that have been running for too long and runs your chosen action."
   documentation = file("./pipelines/sql/docs/detect_and_correct_sql_db_instances_exceeding_max_age.md")
-  tags          = merge(local.sql_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.sql_common_tags, { class = "unused", type = "recommended" })
 
   param "database" {
     type        = string
@@ -99,10 +99,10 @@ pipeline "correct_sql_db_instances_exceeding_max_age" {
 
   param "items" {
     type = list(object({
-      title    = string
-      name     = string
-      project  = string
-      cred     = string
+      title   = string
+      name    = string
+      project = string
+      cred    = string
     }))
     description = local.description_items
   }
@@ -266,28 +266,43 @@ variable "sql_db_instances_exceeding_max_age_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+  tags = {
+    folder = "Advanced/SQL"
+  }
 }
 
 variable "sql_db_instances_exceeding_max_age_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "The schedule on which to run the trigger if enabled."
+  tags = {
+    folder = "Advanced/SQL"
+  }
 }
 
 variable "sql_db_instances_exceeding_max_age_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
   default     = "notify"
+  tags = {
+    folder = "Advanced/SQL"
+  }
 }
 
 variable "sql_db_instances_exceeding_max_age_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions to provide to approvers for selection."
   default     = ["skip", "delete_sql_db_instance"]
+  tags = {
+    folder = "Advanced/SQL"
+  }
 }
 
 variable "sql_db_instances_exceeding_max_age_days" {
   type        = number
   description = "The maximum number of days SQL database instances can be retained."
   default     = 15
+  tags = {
+    folder = "Advanced/SQL"
+  }
 }

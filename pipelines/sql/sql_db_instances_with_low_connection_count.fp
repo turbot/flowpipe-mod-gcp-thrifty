@@ -48,7 +48,7 @@ pipeline "detect_and_correct_sql_db_instances_with_low_connection_count" {
   title         = "Detect & correct SQL DB instances with low connection count"
   description   = "Detects SQL DB instances with low connection count and runs your chosen action."
   documentation = file("./pipelines/sql/docs/detect_and_correct_sql_db_instances_with_low_connection_count.md")
-  tags          = merge(local.sql_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.sql_common_tags, { class = "unused", type = "recommended" })
 
   param "database" {
     type        = string
@@ -278,22 +278,34 @@ variable "sql_db_instances_with_low_connection_count_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+  tags = {
+    folder = "Advanced/SQL"
+  }
 }
 
 variable "sql_db_instances_with_low_connection_count_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "The schedule on which to run the trigger if enabled."
+  tags = {
+    folder = "Advanced/SQL"
+  }
 }
 
 variable "sql_db_instances_with_low_connection_count_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
   default     = "notify"
+  tags = {
+    folder = "Advanced/SQL"
+  }
 }
 
 variable "sql_db_instances_with_low_connection_count_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions to provide to approvers for selection."
   default     = ["skip", "delete_instance"]
+  tags = {
+    folder = "Advanced/SQL"
+  }
 }

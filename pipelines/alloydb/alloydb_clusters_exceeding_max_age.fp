@@ -36,7 +36,7 @@ pipeline "detect_and_correct_alloydb_clusters_exceeding_max_age" {
   title         = "Detect & correct AlloyDB clusters exceeding max age"
   description   = "Detects AlloyDB clusters exceeding max age and runs your chosen action."
   documentation = file("./pipelines/alloydb/docs/detect_and_correct_alloydb_clusters_exceeding_max_age.md")
-  tags          = merge(local.alloydb_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.alloydb_common_tags, { class = "unused", type = "recommended" })
 
   param "database" {
     type        = string
@@ -275,28 +275,43 @@ variable "alloydb_clusters_exceeding_max_age_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+  tags = {
+    folder = "Advanced/AlloyDB"
+  }
 }
 
 variable "alloydb_clusters_exceeding_max_age_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "The schedule on which to run the trigger if enabled."
+  tags = {
+    folder = "Advanced/AlloyDB"
+  }
 }
 
 variable "alloydb_clusters_exceeding_max_age_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
   default     = "notify"
+  tags = {
+    folder = "Advanced/AlloyDB"
+  }
 }
 
 variable "alloydb_clusters_exceeding_max_age_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions to provide to approvers for selection."
   default     = ["skip", "delete_alloydb_cluster"]
+  tags = {
+    folder = "Advanced/AlloyDB"
+  }
 }
 
 variable "alloydb_clusters_exceeding_max_age_days" {
   type        = number
   description = "The maximum number of days AlloyDB clusters can be retained."
   default     = 15
+  tags = {
+    folder = "Advanced/AlloyDB"
+  }
 }
