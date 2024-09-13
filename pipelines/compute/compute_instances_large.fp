@@ -37,7 +37,7 @@ pipeline "detect_and_correct_compute_instances_large" {
   title         = "Detect & correct Compute engine instances large"
   description   = "Detects large Compute engine instances and runs your chosen action."
   documentation = file("./pipelines/compute/docs/detect_and_correct_compute_instances_large.md")
-  tags          = merge(local.compute_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.compute_common_tags, { class = "unused", type = "recommended" })
 
   param "database" {
     type        = string
@@ -289,28 +289,43 @@ variable "compute_instances_large_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+  tags = {
+    folder = "Advanced/Compute"
+  }
 }
 
 variable "compute_instances_large_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "The schedule on which to run the trigger if enabled."
+  tags = {
+    folder = "Advanced/Compute"
+  }
 }
 
 variable "compute_instances_large_allowed_types" {
   type        = list(string)
   description = "A list of allowed instance types. PostgreSQL wildcards are supported."
   default     = ["custom-1-1024", "custom-2-2048", "custom-4-4096", "custom-8-8192", "custom-16-16384", "custom-32-32768", "custom-64-65536", "custom-96-98304", "custom-128-131072", "custom-224-229376"]
+  tags = {
+    folder = "Advanced/Compute"
+  }
 }
 
 variable "compute_instances_large_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
   default     = "notify"
+  tags = {
+    folder = "Advanced/Compute"
+  }
 }
 
 variable "compute_instances_large_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions to provide to approvers for selection."
   default     = ["skip", "stop_instance", "terminate_instance"]
+  tags = {
+    folder = "Advanced/Compute"
+  }
 }

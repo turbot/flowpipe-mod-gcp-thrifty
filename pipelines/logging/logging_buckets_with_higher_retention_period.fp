@@ -37,7 +37,7 @@ pipeline "detect_and_correct_logging_buckets_with_high_retention" {
   title         = "Detect & correct Logging Buckets with high retention period"
   description   = "Detects Logging Buckets with retention periods exceeding the specified maximum and runs your chosen action."
   documentation = file("./pipelines/logging/docs/detect_and_correct_logging_buckets_with_high_retention.md")
-  tags          = merge(local.logging_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.logging_common_tags, { class = "unused", type = "recommended" })
 
   param "database" {
     type        = string
@@ -296,34 +296,52 @@ variable "logging_buckets_with_high_retention_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+  tags = {
+    folder = "Advanced/Logging"
+  }
 }
 
 variable "logging_buckets_with_high_retention_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "The schedule on which to run the trigger if enabled."
+  tags = {
+    folder = "Advanced/Logging"
+  }
 }
 
 variable "logging_buckets_with_high_retention_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
   default     = "notify"
+  tags = {
+    folder = "Advanced/Logging"
+  }
 }
 
 variable "logging_buckets_with_high_retention_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions to provide to approvers for selection."
   default     = ["skip", "update_retention"]
+  tags = {
+    folder = "Advanced/Logging"
+  }
 }
 
 variable "logging_bucket_max_retention_days" {
   type        = number
   description = "The maximum number of days a Logging Bucket retention period can be."
   default     = 20
+  tags = {
+    folder = "Advanced/Logging"
+  }
 }
 
 variable "retention_days" {
   type        = string
   description = "The retention period in days to set for the Logging Buckets. Optional."
   default     = "10"
+  tags = {
+    folder = "Advanced/Logging"
+  }
 }
