@@ -5,7 +5,7 @@ locals {
       d.name as disk_name,
       d.zone as zone,
       d.project as project,
-      d._ctx ->> 'connection_name' as cred,
+      d.sp_connection_name as conn,
       i.name as instance_name
     from
       gcp_compute_disk as d
@@ -39,16 +39,16 @@ pipeline "detect_and_correct_compute_disks_attached_to_stopped_instances" {
   title         = "Detect & correct Compute disks attached to stopped instances"
   description   = "Detects Compute disks attached to stopped instances and runs your chosen action."
   documentation = file("./pipelines/compute/docs/detect_and_correct_compute_disks_attached_to_stopped_instances.md")
-  tags          = merge(local.compute_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.compute_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -60,7 +60,7 @@ pipeline "detect_and_correct_compute_disks_attached_to_stopped_instances" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -107,13 +107,13 @@ pipeline "correct_compute_disks_attached_to_stopped_instances" {
       zone          = string
       instance_name = string
       project       = string
-      cred          = string
+      conn          = string
       title         = string
     }))
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -125,7 +125,7 @@ pipeline "correct_compute_disks_attached_to_stopped_instances" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -143,8 +143,8 @@ pipeline "correct_compute_disks_attached_to_stopped_instances" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
-    notifier = notifier[param.notifier]
+    if       = var.notification_level == local.level_info
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} Compute disks attached to stopped instances."
   }
 
@@ -161,7 +161,7 @@ pipeline "correct_compute_disks_attached_to_stopped_instances" {
       project            = each.value.project
       zone               = each.value.zone
       instance_name      = each.value.instance_name
-      cred               = each.value.cred
+      conn               = connection.gcp[each.value.conn]
       title              = each.value.title
       notifier           = param.notifier
       notification_level = param.notification_level
@@ -203,13 +203,13 @@ pipeline "correct_one_compute_disk_attached_to_stopped_instance" {
     description = local.description_title
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.gcp
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -221,7 +221,7 @@ pipeline "correct_one_compute_disk_attached_to_stopped_instance" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -271,7 +271,7 @@ pipeline "correct_one_compute_disk_attached_to_stopped_instance" {
             project_id    = param.project
             zone          = param.zone
             instance_name = param.instance_name
-            cred          = param.cred
+            conn          = param.conn
           }
           success_msg = "Detached Compute disk ${param.disk_name} from the instance ${param.instance_name}."
           error_msg   = "Error detaching Compute disk ${param.disk_name} from the instance ${param.instance_name}."
@@ -286,7 +286,7 @@ pipeline "correct_one_compute_disk_attached_to_stopped_instance" {
             project       = param.project
             instance_name = param.instance_name
             zone          = param.zone
-            cred          = param.cred
+            conn          = param.conn
           }
           success_msg = "Detached & deleted Compute disk ${param.disk_name}."
           error_msg   = "Error detaching and deleting Compute disk ${param.disk_name}."
@@ -301,7 +301,7 @@ pipeline "correct_one_compute_disk_attached_to_stopped_instance" {
             project       = param.project
             instance_name = param.instance_name
             zone          = param.zone
-            cred          = param.cred
+            conn          = param.conn
           }
           success_msg = "Snapshotted, detached & deleted Compute disk ${param.disk_name}."
           error_msg   = "Error snapshotting & deleting Compute disk ${param.disk_name}."
@@ -335,9 +335,9 @@ pipeline "detach_and_delete_compute_disk" {
     description = local.description_zone
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.gcp
+    description = local.description_connection
   }
 
   step "pipeline" "detach_compute_disk" {
@@ -347,7 +347,7 @@ pipeline "detach_and_delete_compute_disk" {
       instance_name = param.instance_name
       project_id    = param.project
       zone          = param.zone
-      cred          = param.cred
+      conn          = param.conn
     }
   }
 
@@ -358,7 +358,7 @@ pipeline "detach_and_delete_compute_disk" {
       disk_name  = param.disk_name
       project_id = param.project
       zone       = param.zone
-      cred       = param.cred
+      conn       = param.conn
     }
   }
 }
@@ -387,9 +387,9 @@ pipeline "snapshot_detach_and_delete_disk" {
     description = local.description_zone
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.gcp
+    description = local.description_connection
   }
 
   step "pipeline" "create_compute_snapshot" {
@@ -399,7 +399,7 @@ pipeline "snapshot_detach_and_delete_disk" {
       source_disk_zone = param.zone
       project_id       = param.project
       snapshot_name    = "snapshot-${param.disk_name}"
-      cred             = param.cred
+      conn             = param.conn
     }
   }
 
@@ -411,7 +411,7 @@ pipeline "snapshot_detach_and_delete_disk" {
       instance_name = param.instance_name
       project_id    = param.project
       zone          = param.zone
-      cred          = param.cred
+      conn          = param.conn
     }
   }
 
@@ -422,7 +422,7 @@ pipeline "snapshot_detach_and_delete_disk" {
       disk_name  = param.disk_name
       project_id = param.project
       zone       = param.zone
-      cred       = param.cred
+      conn       = param.conn
     }
   }
 }

@@ -4,7 +4,7 @@ locals {
       concat(name, ' [', zone, '/', project, ']') as title,
       name as instance_name,
       zone,
-      _ctx ->> 'connection_name' as cred,
+      sp_connection_name as conn,
       project
     from
       gcp_compute_instance
@@ -37,16 +37,16 @@ pipeline "detect_and_correct_compute_instances_large" {
   title         = "Detect & correct Compute engine instances large"
   description   = "Detects large Compute engine instances and runs your chosen action."
   documentation = file("./pipelines/compute/docs/detect_and_correct_compute_instances_large.md")
-  tags          = merge(local.compute_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.compute_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -58,7 +58,7 @@ pipeline "detect_and_correct_compute_instances_large" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -102,7 +102,7 @@ pipeline "correct_compute_instances_large" {
   param "items" {
     type = list(object({
       title         = string
-      cred          = string
+      conn          = string
       instance_name = string
       zone          = string
       project       = string
@@ -110,7 +110,7 @@ pipeline "correct_compute_instances_large" {
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -122,7 +122,7 @@ pipeline "correct_compute_instances_large" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -140,8 +140,8 @@ pipeline "correct_compute_instances_large" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
-    notifier = notifier[param.notifier]
+    if       = var.notification_level == local.level_info
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} large Compute engine instance."
   }
 
@@ -156,7 +156,7 @@ pipeline "correct_compute_instances_large" {
     args = {
       instance_name      = each.value.instance_name
       zone               = each.value.zone
-      cred               = each.value.cred
+      conn               = connection.gcp[each.value.conn]
       title              = each.value.title
       project            = each.value.project
       notifier           = param.notifier
@@ -174,9 +174,9 @@ pipeline "correct_one_compute_instance_large" {
   documentation = file("./pipelines/compute/docs/correct_one_compute_instance_large.md")
   tags          = merge(local.compute_common_tags, { class = "unused" })
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.gcp
+    description = local.description_connection
   }
 
   param "title" {
@@ -200,7 +200,7 @@ pipeline "correct_one_compute_instance_large" {
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -212,7 +212,7 @@ pipeline "correct_one_compute_instance_large" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -261,7 +261,7 @@ pipeline "correct_one_compute_instance_large" {
             instance_name = param.instance_name
             zone          = param.zone
             project_id    = param.project
-            cred          = param.cred
+            conn          = param.conn
           }
           success_msg = "Stopped Compute engine instance ${param.title}."
           error_msg   = "Error stopping Compute engine instance ${param.title}."
@@ -275,7 +275,7 @@ pipeline "correct_one_compute_instance_large" {
             instance_name = param.instance_name
             zone          = param.zone
             project_id    = param.project
-            cred          = param.cred
+            conn          = param.conn
           }
           success_msg = "Deleted Compute engine instance ${param.title}."
           error_msg   = "Error deleting Compute engine instance ${param.title}."

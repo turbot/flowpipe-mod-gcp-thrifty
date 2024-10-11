@@ -5,7 +5,7 @@ locals {
       name as bucket_name,
       location,
       project,
-      _ctx ->> 'connection_name' as cred
+      sp_connection_name as conn
     from
       gcp_logging_bucket
     where
@@ -37,10 +37,10 @@ pipeline "detect_and_correct_logging_buckets_with_high_retention" {
   title         = "Detect & correct Logging Buckets with high retention period"
   description   = "Detects Logging Buckets with retention periods exceeding the specified maximum and runs your chosen action."
   documentation = file("./pipelines/logging/docs/detect_and_correct_logging_buckets_with_high_retention.md")
-  tags          = merge(local.logging_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.logging_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
@@ -52,7 +52,7 @@ pipeline "detect_and_correct_logging_buckets_with_high_retention" {
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -64,7 +64,7 @@ pipeline "detect_and_correct_logging_buckets_with_high_retention" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -111,13 +111,13 @@ pipeline "correct_logging_buckets_with_high_retention" {
       bucket_name = string
       location    = string
       project     = string
-      cred        = string
+      conn        = string
       title       = string
     }))
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -129,7 +129,7 @@ pipeline "correct_logging_buckets_with_high_retention" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -153,8 +153,8 @@ pipeline "correct_logging_buckets_with_high_retention" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
-    notifier = notifier[param.notifier]
+    if       = var.notification_level == local.level_info
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} Logging Buckets with high retention period."
   }
 
@@ -170,7 +170,7 @@ pipeline "correct_logging_buckets_with_high_retention" {
       bucket_name        = each.value.bucket_name
       location           = each.value.location
       project            = each.value.project
-      cred               = each.value.cred
+      conn               = connection.gcp[each.value.conn]
       title              = each.value.title
       notifier           = param.notifier
       notification_level = param.notification_level
@@ -208,13 +208,13 @@ pipeline "correct_one_logging_bucket_with_high_retention" {
     description = local.description_title
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.gcp
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -226,7 +226,7 @@ pipeline "correct_one_logging_bucket_with_high_retention" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -281,7 +281,7 @@ pipeline "correct_one_logging_bucket_with_high_retention" {
             bucket_id      = param.bucket_name
             location       = param.location
             project_id     = param.project
-            cred           = param.cred
+            conn           = param.conn
             retention_days = param.retention_days
           }
           success_msg = "Updated retention period for Logging Bucket ${param.title}."

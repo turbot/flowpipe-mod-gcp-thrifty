@@ -4,7 +4,7 @@ locals {
       concat(name, ' [', location, '/', project, ']') as title,
       name,
       project,
-      _ctx ->> 'connection_name' as cred,
+      sp_connection_name as conn,
       location
     from
       gcp_compute_target_vpn_gateway
@@ -36,16 +36,16 @@ pipeline "detect_and_correct_vpn_gateways_with_no_tunnels" {
   title         = "Detect & correct VPN gateways with no tunnels"
   description   = "Detect VPN gateways with no tunnels attached and run your chosen action."
   documentation = file("./pipelines/network/docs/detect_and_correct_vpn_gateways_with_no_tunnels.md")
-  tags          = merge(local.network_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.network_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -57,7 +57,7 @@ pipeline "detect_and_correct_vpn_gateways_with_no_tunnels" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -104,12 +104,12 @@ pipeline "correct_vpn_gateways_with_no_tunnels" {
       name     = string
       project  = string
       location = string
-      cred     = string
+      conn     = string
     }))
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -121,7 +121,7 @@ pipeline "correct_vpn_gateways_with_no_tunnels" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -139,8 +139,8 @@ pipeline "correct_vpn_gateways_with_no_tunnels" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
-    notifier = notifier[param.notifier]
+    if       = var.notification_level == local.level_info
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} VPN gateways with no tunnels attached."
   }
 
@@ -153,7 +153,7 @@ pipeline "correct_vpn_gateways_with_no_tunnels" {
       name               = each.value.name
       project            = each.value.project
       location           = each.value.location
-      cred               = each.value.cred
+      conn               = connection.gcp[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -189,13 +189,13 @@ pipeline "correct_one_vpn_gateway_with_no_tunnels" {
     description = local.description_location
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.gcp
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -207,7 +207,7 @@ pipeline "correct_one_vpn_gateway_with_no_tunnels" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -253,7 +253,7 @@ pipeline "correct_one_vpn_gateway_with_no_tunnels" {
           style        = local.style_alert
           pipeline_ref = local.gcp_pipeline_delete_vpn_gateway
           pipeline_args = {
-            cred             = param.cred
+            conn             = param.conn
             vpn_gateway_name = param.name
             project_id       = param.project
             region           = param.location

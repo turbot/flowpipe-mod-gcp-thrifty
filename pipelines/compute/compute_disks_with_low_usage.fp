@@ -5,7 +5,7 @@ locals {
         project,
         location as zone,
         name as disk_name,
-        _ctx,
+        sp_connection_name,
         round(avg(max)) as avg_max,
         count(max) as days
       from
@@ -14,7 +14,7 @@ locals {
             project,
             name,
             location,
-            _ctx,
+            sp_connection_name,
             cast(maximum as numeric) as max
           from
             gcp_compute_disk_metric_read_ops_daily
@@ -25,7 +25,7 @@ locals {
             project,
             name,
             location,
-            _ctx,
+            sp_connection_name,
             cast(maximum as numeric) as max
           from
             gcp_compute_disk_metric_write_ops_daily
@@ -35,7 +35,7 @@ locals {
       group by
         name,
         project,
-        _ctx,
+        sp_connection_name,
         location
     )
     select
@@ -43,7 +43,7 @@ locals {
       disk_name,
       project,
       zone,
-      _ctx ->> 'connection_name' as cred
+      sp_connection_name as conn
     from
       disk_usage
     where
@@ -74,16 +74,16 @@ pipeline "detect_and_correct_compute_disks_with_low_usage" {
   title         = "Detect & correct Compute disks with low usage"
   description   = "Detects Compute disks with low usage and runs your chosen action."
   documentation = file("./pipelines/compute/docs/detect_and_correct_compute_disks_with_low_usage.md")
-  tags          = merge(local.compute_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.compute_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -95,7 +95,7 @@ pipeline "detect_and_correct_compute_disks_with_low_usage" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -141,13 +141,13 @@ pipeline "correct_compute_disks_with_low_usage" {
       disk_name = string
       project   = string
       zone      = string
-      cred      = string
+      conn      = string
       title     = string
     }))
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -159,7 +159,7 @@ pipeline "correct_compute_disks_with_low_usage" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -177,8 +177,8 @@ pipeline "correct_compute_disks_with_low_usage" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
-    notifier = notifier[param.notifier]
+    if       = var.notification_level == local.level_info
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} Compute disks with low usage."
   }
 
@@ -194,7 +194,7 @@ pipeline "correct_compute_disks_with_low_usage" {
       disk_name          = each.value.disk_name
       project            = each.value.project
       zone               = each.value.zone
-      cred               = each.value.cred
+      conn               = connection.gcp[each.value.conn]
       title              = each.value.title
       notifier           = param.notifier
       notification_level = param.notification_level
@@ -226,9 +226,9 @@ pipeline "correct_one_compute_disk_with_low_usage" {
     description = local.description_zone
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.gcp
+    description = local.description_connection
   }
 
   param "title" {
@@ -237,7 +237,7 @@ pipeline "correct_one_compute_disk_with_low_usage" {
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -249,7 +249,7 @@ pipeline "correct_one_compute_disk_with_low_usage" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -298,7 +298,7 @@ pipeline "correct_one_compute_disk_with_low_usage" {
             project_id = param.project
             zone       = param.zone
             disk_name  = param.disk_name
-            cred       = param.cred
+            conn       = param.conn
           }
           success_msg = "Deleted Compute disk ${param.title}."
           error_msg   = "Error deleting Compute disk ${param.title}."
@@ -312,7 +312,7 @@ pipeline "correct_one_compute_disk_with_low_usage" {
             disk_name = param.disk_name
             zone      = param.zone
             project   = param.project
-            cred      = param.cred
+            conn      = param.conn
           }
           success_msg = "Snapshotted & deleted Compute disk ${param.title}."
           error_msg   = "Error snapshotting & deleting Compute disk ${param.title}."

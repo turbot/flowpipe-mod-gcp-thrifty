@@ -3,7 +3,7 @@ locals {
   select
     concat(name, ' [', location, '/', project, ']') as title,
     name,
-    _ctx ->> 'connection_name' as cred,
+    sp_connection_name as conn,
     project
   from
     gcp_compute_snapshot
@@ -35,16 +35,16 @@ pipeline "detect_and_correct_compute_snapshots_exceeding_max_age" {
   title         = "Detect & correct Compute snapshots exceeding max age"
   description   = "Detects Compute snapshots exceeding max age and runs your chosen action."
   documentation = file("./pipelines/compute/docs/detect_and_correct_compute_snapshots_exceeding_max_age.md")
-  tags          = merge(local.compute_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.compute_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -56,7 +56,7 @@ pipeline "detect_and_correct_compute_snapshots_exceeding_max_age" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -102,13 +102,13 @@ pipeline "correct_compute_snapshots_exceeding_max_age" {
       title   = string
       name    = string
       project = string
-      cred    = string
+      conn    = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -120,7 +120,7 @@ pipeline "correct_compute_snapshots_exceeding_max_age" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -138,8 +138,8 @@ pipeline "correct_compute_snapshots_exceeding_max_age" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
-    notifier = notifier[param.notifier]
+    if       = var.notification_level == local.level_info
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} Compute snapshots exceeding maximum age."
   }
 
@@ -154,7 +154,7 @@ pipeline "correct_compute_snapshots_exceeding_max_age" {
     args = {
       name               = each.value.name
       project            = each.value.project
-      cred               = each.value.cred
+      conn               = connection.gcp[each.value.conn]
       title              = each.value.title
       notifier           = param.notifier
       notification_level = param.notification_level
@@ -186,13 +186,13 @@ pipeline "correct_one_compute_snapshot_exceeding_max_age" {
     description = local.description_title
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.gcp
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -204,7 +204,7 @@ pipeline "correct_one_compute_snapshot_exceeding_max_age" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -252,7 +252,7 @@ pipeline "correct_one_compute_snapshot_exceeding_max_age" {
           pipeline_args = {
             snapshot_name = param.name
             project_id    = param.project
-            cred          = param.cred
+            conn          = param.conn
           }
           success_msg = "Deleted Compute snapshot ${param.title}."
           error_msg   = "Error deleting Compute snapshot ${param.title}."

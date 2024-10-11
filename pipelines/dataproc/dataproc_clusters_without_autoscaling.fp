@@ -3,7 +3,7 @@ locals {
   select
     concat(cluster_name, ' [', location, '/', project, ']') as title,
     cluster_name as name,
-    _ctx ->> 'connection_name' as cred,
+    sp_connection_name as conn,
     location,
     project
   from
@@ -36,15 +36,15 @@ pipeline "detect_and_correct_dataproc_clusters_without_autoscaling" {
   title         = "Detect & correct Dataproc clusters without autoscaling"
   description   = "Detects Dataproc clusters without autoscaling enabled and runs your chosen action."
   documentation = file("./pipelines/dataproc/docs/detect_and_correct_dataproc_clusters_without_autoscaling.md")
-  tags          = merge(local.dataproc_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.dataproc_common_tags, { class = "unused", recommended = "true" })
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -56,7 +56,7 @@ pipeline "detect_and_correct_dataproc_clusters_without_autoscaling" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -100,7 +100,7 @@ pipeline "correct_dataproc_clusters_without_autoscaling" {
   param "items" {
     type = list(object({
       title    = string
-      cred     = string
+      conn     = string
       name     = string
       location = string
       project  = string
@@ -108,7 +108,7 @@ pipeline "correct_dataproc_clusters_without_autoscaling" {
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -120,7 +120,7 @@ pipeline "correct_dataproc_clusters_without_autoscaling" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -138,8 +138,8 @@ pipeline "correct_dataproc_clusters_without_autoscaling" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
-    notifier = notifier[param.notifier]
+    if       = var.notification_level == local.level_info
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} Dataproc clusters without autoscaling."
   }
 
@@ -150,7 +150,7 @@ pipeline "correct_dataproc_clusters_without_autoscaling" {
     args = {
       title              = each.value.title
       name               = each.value.name
-      cred               = each.value.cred
+      conn               = connection.gcp[each.value.conn]
       location           = each.value.location
       project            = each.value.project
       notifier           = param.notifier
@@ -168,9 +168,9 @@ pipeline "correct_one_dataproc_cluster_without_autoscaling" {
   documentation = file("./pipelines/dataproc/docs/correct_one_dataproc_cluster_without_autoscaling.md")
   tags          = merge(local.dataproc_common_tags, { class = "unused" })
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.gcp
+    description = local.description_connection
   }
 
   param "title" {
@@ -194,7 +194,7 @@ pipeline "correct_one_dataproc_cluster_without_autoscaling" {
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -206,7 +206,7 @@ pipeline "correct_one_dataproc_cluster_without_autoscaling" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -253,7 +253,7 @@ pipeline "correct_one_dataproc_cluster_without_autoscaling" {
           pipeline_ref = local.gcp_pipeline_delete_dataproc_cluster
           pipeline_args = {
             cluster_name = param.name
-            cred         = param.cred
+            conn         = param.conn
             project_id   = param.project
             region       = param.location
           }

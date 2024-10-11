@@ -4,7 +4,7 @@ locals {
       concat(name, ' [', location, '/', project, ']') as title,
       name,
       project,
-      _ctx ->> 'connection_name' as cred
+      sp_connection_name as conn
     from
       gcp_storage_bucket
     where
@@ -35,16 +35,16 @@ pipeline "detect_and_correct_storage_buckets_without_lifecycle_policy" {
   title         = "Detect & correct Storage buckets without lifecycle policies"
   description   = "Detects Storage buckets without lifecycle policies and runs your chosen action."
   documentation = file("./pipelines/storage/docs/detect_and_correct_storage_buckets_without_lifecycle_policy.md")
-  tags          = merge(local.storage_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.storage_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -56,7 +56,7 @@ pipeline "detect_and_correct_storage_buckets_without_lifecycle_policy" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -102,12 +102,12 @@ pipeline "correct_storage_buckets_without_lifecycle_policy" {
       title   = string
       name    = string
       project = string
-      cred    = string
+      conn    = string
     }))
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -119,7 +119,7 @@ pipeline "correct_storage_buckets_without_lifecycle_policy" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -137,8 +137,8 @@ pipeline "correct_storage_buckets_without_lifecycle_policy" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
-    notifier = notifier[param.notifier]
+    if       = var.notification_level == local.level_info
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} Storage buckets without lifecycle policies."
   }
 
@@ -150,7 +150,7 @@ pipeline "correct_storage_buckets_without_lifecycle_policy" {
       title              = each.value.title
       name               = each.value.name
       project            = each.value.project
-      cred               = each.value.cred
+      conn               = connection.gcp[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -166,9 +166,9 @@ pipeline "correct_one_storage_bucket_without_lifecycle_policy" {
   documentation = file("./pipelines/storage/docs/correct_one_storage_bucket_without_lifecycle_policy.md")
   tags          = merge(local.storage_common_tags, { class = "unused" })
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.gcp
+    description = local.description_connection
   }
 
   param "title" {
@@ -187,7 +187,7 @@ pipeline "correct_one_storage_bucket_without_lifecycle_policy" {
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -199,7 +199,7 @@ pipeline "correct_one_storage_bucket_without_lifecycle_policy" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -247,7 +247,7 @@ pipeline "correct_one_storage_bucket_without_lifecycle_policy" {
           pipeline_args = {
             bucket_url = "gs://${param.name}"
             project_id = param.project
-            cred       = param.cred
+            conn       = param.conn
           }
           success_msg = "Deleted all objects and Storage bucket ${param.title}."
           error_msg   = "Error deleting all objects and Storage bucket ${param.title}."
@@ -259,7 +259,7 @@ pipeline "correct_one_storage_bucket_without_lifecycle_policy" {
           pipeline_ref = local.gcp_pipeline_delete_storage_buckets
           pipeline_args = {
             bucket_urls = ["gs://${param.name}"]
-            cred        = param.cred
+            conn        = param.conn
             project_id  = param.project
           }
           success_msg = "Deleted Storage bucket ${param.title}."

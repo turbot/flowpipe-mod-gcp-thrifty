@@ -16,7 +16,7 @@ locals {
       concat(i.name, ' [', i.location, '/', i.project, ']') as title,
       i.name as instance_name,
       i.project as project,
-      i._ctx ->> 'connection_name' as cred
+      i.sp_connection_name as conn
     from
       gcp_sql_database_instance as i
       left join sql_db_instance_usage as u on i.project || ':' || i.name = u.instance_id
@@ -48,16 +48,16 @@ pipeline "detect_and_correct_sql_db_instances_with_low_cpu_utilization" {
   title         = "Detect & correct SQL DB instances with low cpu utilization"
   description   = "Detects SQL DB instances with low cpu utilization and runs your chosen action."
   documentation = file("./pipelines/sql/docs/detect_and_correct_sql_db_instances_with_low_cpu_utilization.md")
-  tags          = merge(local.sql_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.sql_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -69,7 +69,7 @@ pipeline "detect_and_correct_sql_db_instances_with_low_cpu_utilization" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -115,12 +115,12 @@ pipeline "correct_sql_db_instances_with_low_cpu_utilization" {
       title         = string
       instance_name = string
       project       = string
-      cred          = string
+      conn          = string
     }))
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -132,7 +132,7 @@ pipeline "correct_sql_db_instances_with_low_cpu_utilization" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -150,8 +150,8 @@ pipeline "correct_sql_db_instances_with_low_cpu_utilization" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
-    notifier = notifier[param.notifier]
+    if       = var.notification_level == local.level_info
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} SQL DB instances with low cpu utilization."
   }
 
@@ -167,7 +167,7 @@ pipeline "correct_sql_db_instances_with_low_cpu_utilization" {
       instance_name      = each.value.instance_name
       project            = each.value.project
       title              = each.value.title
-      cred               = each.value.cred
+      conn               = connection.gcp[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -198,13 +198,13 @@ pipeline "correct_one_sql_db_instance_with_low_cpu_utilization" {
     description = local.description_project
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.gcp
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -216,7 +216,7 @@ pipeline "correct_one_sql_db_instance_with_low_cpu_utilization" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -262,7 +262,7 @@ pipeline "correct_one_sql_db_instance_with_low_cpu_utilization" {
           style        = local.style_alert
           pipeline_ref = local.gcp_pipeline_stop_sql_instance
           pipeline_args = {
-            cred          = param.cred
+            conn          = param.conn
             project_id    = param.project
             instance_name = param.instance_name
           }
@@ -275,7 +275,7 @@ pipeline "correct_one_sql_db_instance_with_low_cpu_utilization" {
           style        = local.style_alert
           pipeline_ref = local.gcp_pipeline_delete_sql_instance
           pipeline_args = {
-            cred          = param.cred
+            conn          = param.conn
             instance_name = param.instance_name
             project_id    = param.project
           }

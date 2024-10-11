@@ -4,7 +4,7 @@ locals {
       concat(name, ' [', location, '/', project, ']') as title,
       name as address_name,
       location,
-      _ctx ->> 'connection_name' as cred,
+      sp_connection_name as conn,
       project
     from
       gcp_compute_address
@@ -36,16 +36,16 @@ pipeline "detect_and_correct_compute_addresses_if_unattached" {
   title         = "Detect & correct Compute addresses if unattached"
   description   = "Detects unattached Compute addresses and runs your chosen action."
   documentation = file("./pipelines/compute/docs/detect_and_correct_compute_addresses_if_unattached.md")
-  tags          = merge(local.compute_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.compute_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -57,7 +57,7 @@ pipeline "detect_and_correct_compute_addresses_if_unattached" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -102,14 +102,14 @@ pipeline "correct_compute_addresses_if_unattached" {
     type = list(object({
       address_name = string
       title        = string
-      cred         = string
+      conn         = string
       location     = string
       project      = string
     }))
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -121,7 +121,7 @@ pipeline "correct_compute_addresses_if_unattached" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -139,8 +139,8 @@ pipeline "correct_compute_addresses_if_unattached" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
-    notifier = notifier[param.notifier]
+    if       = var.notification_level == local.level_info
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} unattached Compute addresses."
   }
 
@@ -156,7 +156,7 @@ pipeline "correct_compute_addresses_if_unattached" {
       address_name       = each.value.address_name
       location           = each.value.location
       project            = each.value.project
-      cred               = each.value.cred
+      conn               = connection.gcp[each.value.conn]
       title              = each.value.title
       notifier           = param.notifier
       notification_level = param.notification_level
@@ -189,7 +189,7 @@ pipeline "correct_one_compute_address_if_unattached" {
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -201,7 +201,7 @@ pipeline "correct_one_compute_address_if_unattached" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -212,9 +212,9 @@ pipeline "correct_one_compute_address_if_unattached" {
     default     = var.compute_addresses_if_unattached_default_action
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.gcp
+    description = local.description_connection
   }
 
   param "title" {
@@ -260,7 +260,7 @@ pipeline "correct_one_compute_address_if_unattached" {
             address_name = param.address_name
             region       = param.location
             project_id   = param.project
-            cred         = param.cred
+            conn         = param.conn
           }
           success_msg = "Deleted Compute address ${param.title}."
           error_msg   = "Error releasing Compute address ${param.title}."

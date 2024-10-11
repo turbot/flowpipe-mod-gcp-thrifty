@@ -16,7 +16,7 @@ locals {
       concat(i.name, ' [', i.zone, '/', i.project, ']') as title,
       i.name as instance_name,
       i.project as project,
-      i._ctx ->> 'connection_name' as cred,
+      i.sp_connection_name as conn,
       i.zone as zone
     from
       gcp_compute_instance as i
@@ -49,16 +49,16 @@ pipeline "detect_and_correct_compute_instances_with_low_utilization" {
   title         = "Detect & correct Compute instances with low utilization"
   description   = "Detects Compute instances with low utilization and runs your chosen action."
   documentation = file("./pipelines/compute/docs/detect_and_correct_compute_instances_with_low_utilization.md")
-  tags          = merge(local.compute_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.compute_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -70,7 +70,7 @@ pipeline "detect_and_correct_compute_instances_with_low_utilization" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -116,13 +116,13 @@ pipeline "correct_compute_instances_with_low_utilization" {
       instance_name = string
       project       = string
       zone          = string
-      cred          = string
+      conn          = string
       title         = string
     }))
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -134,7 +134,7 @@ pipeline "correct_compute_instances_with_low_utilization" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -152,8 +152,8 @@ pipeline "correct_compute_instances_with_low_utilization" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
-    notifier = notifier[param.notifier]
+    if       = var.notification_level == local.level_info
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} Compute instances without graviton processor."
   }
 
@@ -169,7 +169,7 @@ pipeline "correct_compute_instances_with_low_utilization" {
       instance_name      = each.value.instance_name
       project            = each.value.project
       zone               = each.value.zone
-      cred               = each.value.cred
+      conn               = connection.gcp[each.value.conn]
       title              = each.value.title
       notifier           = param.notifier
       notification_level = param.notification_level
@@ -207,9 +207,9 @@ pipeline "correct_one_compute_instance_with_low_utilization" {
     description = local.description_zone
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.gcp
+    description = local.description_connection
   }
 
   param "title" {
@@ -218,7 +218,7 @@ pipeline "correct_one_compute_instance_with_low_utilization" {
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -230,7 +230,7 @@ pipeline "correct_one_compute_instance_with_low_utilization" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -280,7 +280,7 @@ pipeline "correct_one_compute_instance_with_low_utilization" {
             project_id    = param.project
             machine_type  = param.machine_type
             zone          = param.zone
-            cred          = param.cred
+            conn          = param.conn
           }
           success_msg = "Stopped Compute instance ${param.title} and downgraded instance type."
           error_msg   = "Error stopping Compute instance ${param.title} and downgrading instance type."
@@ -294,7 +294,7 @@ pipeline "correct_one_compute_instance_with_low_utilization" {
             instance_name = param.instance_name
             project_id    = param.project
             zone          = param.zone
-            cred          = param.cred
+            conn          = param.conn
           }
           success_msg = "Stopped Compute instance ${param.title}."
           error_msg   = "Error stopping Compute instance ${param.title}."
@@ -328,9 +328,9 @@ pipeline "stop_downgrade_compute_instance" {
     description = local.description_zone
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.gcp
+    description = local.description_connection
   }
 
   param "title" {
@@ -344,7 +344,7 @@ pipeline "stop_downgrade_compute_instance" {
       instance_name = param.instance_name
       project_id    = param.project_id
       zone          = param.zone
-      cred          = param.cred
+      conn          = param.conn
     }
   }
 
@@ -356,7 +356,7 @@ pipeline "stop_downgrade_compute_instance" {
       machine_type  = param.machine_type
       project_id    = param.project_id
       zone          = param.zone
-      cred          = param.cred
+      conn          = param.conn
     }
   }
 
@@ -367,7 +367,7 @@ pipeline "stop_downgrade_compute_instance" {
       instance_name = param.instance_name
       project_id    = param.project_id
       zone          = param.zone
-      cred          = param.cred
+      conn          = param.conn
     }
   }
 }

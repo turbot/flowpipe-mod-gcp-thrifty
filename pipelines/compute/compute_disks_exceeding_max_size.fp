@@ -5,7 +5,7 @@ locals {
       project,
       zone,
       name as disk_name,
-      _ctx ->> 'connection_name' as cred
+      sp_connection_name as conn
     from
       gcp_compute_disk
     where
@@ -36,16 +36,16 @@ pipeline "detect_and_correct_compute_disks_exceeding_max_size" {
   title         = "Detect & correct Compute disks exceeding max size"
   description   = "Detects Compute disks exceeding maximum size and runs your chosen action."
   documentation = file("./pipelines/compute/docs/detect_and_correct_compute_disks_exceeding_max_size.md")
-  tags          = merge(local.compute_common_tags, { class = "managed", type = "featured" })
+  tags          = merge(local.compute_common_tags, { class = "managed", recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -57,7 +57,7 @@ pipeline "detect_and_correct_compute_disks_exceeding_max_size" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -104,12 +104,12 @@ pipeline "correct_compute_disks_exceeding_max_size" {
       zone      = string
       disk_name = string
       title     = string
-      cred      = string
+      conn      = string
     }))
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -121,7 +121,7 @@ pipeline "correct_compute_disks_exceeding_max_size" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -139,8 +139,8 @@ pipeline "correct_compute_disks_exceeding_max_size" {
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
-    notifier = notifier[param.notifier]
+    if       = var.notification_level == local.level_info
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} Compute disks exceeding maximum size."
   }
 
@@ -157,7 +157,7 @@ pipeline "correct_compute_disks_exceeding_max_size" {
       zone               = each.value.zone
       disk_name          = each.value.disk_name
       notifier           = param.notifier
-      cred               = each.value.cred
+      conn               = connection.gcp[each.value.conn]
       title              = each.value.title
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -188,9 +188,9 @@ pipeline "correct_one_compute_disk_exceeding_max_size" {
     description = "The name of the Compute disk."
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.gcp
+    description = local.description_connection
   }
 
   param "title" {
@@ -199,7 +199,7 @@ pipeline "correct_one_compute_disk_exceeding_max_size" {
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -211,7 +211,7 @@ pipeline "correct_one_compute_disk_exceeding_max_size" {
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -260,7 +260,7 @@ pipeline "correct_one_compute_disk_exceeding_max_size" {
             project_id = param.project
             zone       = param.zone
             disk_name  = param.disk_name
-            cred       = param.cred
+            conn       = param.conn
           }
           success_msg = "deleted Compute disk ${param.title}."
           error_msg   = "Error deleting Compute disk ${param.title}."
@@ -274,7 +274,7 @@ pipeline "correct_one_compute_disk_exceeding_max_size" {
             project   = param.project
             zone      = param.zone
             disk_name = param.disk_name
-            cred      = param.cred
+            conn      = param.conn
           }
           success_msg = "Snapshotted & deleted Compute disk ${param.title}."
           error_msg   = "Error snapshotting & deleting Compute disk ${param.title}."
