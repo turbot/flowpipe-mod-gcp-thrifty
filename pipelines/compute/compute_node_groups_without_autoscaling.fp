@@ -282,28 +282,43 @@ variable "compute_node_group_max_nodes" {
   type        = number
   description = "The maximum number of nodes to set for the autoscaler."
   default     = 10
+  tags = {
+    folder = "Advanced/Compute"
+  }
 }
 
 variable "compute_node_groups_without_autoscaling_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+  tags = {
+    folder = "Advanced/Compute"
+  }
 }
 
 variable "compute_node_groups_without_autoscaling_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "The schedule on which to run the trigger if enabled."
+  tags = {
+    folder = "Advanced/Compute"
+  }
 }
 
 variable "compute_node_groups_without_autoscaling_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
   default     = "notify"
+  tags = {
+    folder = "Advanced/Compute"
+  }
 }
 
 variable "compute_node_groups_without_autoscaling_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions to provide to approvers for selection."
   default     = ["skip", "enable_autoscaling_policy"]
+  tags = {
+    folder = "Advanced/Compute"
+  }
 }

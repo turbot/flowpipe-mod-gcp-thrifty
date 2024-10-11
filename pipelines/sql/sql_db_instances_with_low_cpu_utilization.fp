@@ -291,28 +291,43 @@ variable "sql_db_instances_with_low_cpu_utilization_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+  tags = {
+    folder = "Advanced/SQL"
+  }
 }
 
 variable "sql_db_instances_with_low_cpu_utilization_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "The schedule on which to run the trigger if enabled."
+  tags = {
+    folder = "Advanced/SQL"
+  }
 }
 
 variable "sql_db_instances_with_low_cpu_utilization_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
   default     = "notify"
+  tags = {
+    folder = "Advanced/SQL"
+  }
 }
 
 variable "sql_db_instances_with_low_cpu_utilization_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions to provide to approvers for selection."
   default     = ["skip", "stop_sql_instance", "delete_instance"]
+  tags = {
+    folder = "Advanced/SQL"
+  }
 }
 
 variable "alarm_threshold" {
   type        = number
   description = "The threshold for cpu utilization to trigger an alarm."
   default     = 25
+  tags = {
+    folder = "Advanced/SQL"
+  }
 }

@@ -99,10 +99,17 @@ pipeline "correct_sql_db_instances_exceeding_max_age" {
 
   param "items" {
     type = list(object({
+<<<<<<< HEAD
       title    = string
       name     = string
       project  = string
       conn     = string
+=======
+      title   = string
+      name    = string
+      project = string
+      cred    = string
+>>>>>>> 4a5a8e519ab7c0161993452c4a426d068de8b9a3
     }))
     description = local.description_items
   }
@@ -266,28 +273,43 @@ variable "sql_db_instances_exceeding_max_age_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+  tags = {
+    folder = "Advanced/SQL"
+  }
 }
 
 variable "sql_db_instances_exceeding_max_age_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "The schedule on which to run the trigger if enabled."
+  tags = {
+    folder = "Advanced/SQL"
+  }
 }
 
 variable "sql_db_instances_exceeding_max_age_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
   default     = "notify"
+  tags = {
+    folder = "Advanced/SQL"
+  }
 }
 
 variable "sql_db_instances_exceeding_max_age_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions to provide to approvers for selection."
   default     = ["skip", "delete_sql_db_instance"]
+  tags = {
+    folder = "Advanced/SQL"
+  }
 }
 
 variable "sql_db_instances_exceeding_max_age_days" {
   type        = number
   description = "The maximum number of days SQL database instances can be retained."
   default     = 15
+  tags = {
+    folder = "Advanced/SQL"
+  }
 }

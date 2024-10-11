@@ -37,6 +37,7 @@ pipeline "detect_and_correct_dataproc_clusters_without_autoscaling" {
   description   = "Detects Dataproc clusters without autoscaling enabled and runs your chosen action."
   documentation = file("./pipelines/dataproc/docs/detect_and_correct_dataproc_clusters_without_autoscaling.md")
   tags          = merge(local.dataproc_common_tags, { class = "unused", recommended = "true" })
+
   param "database" {
     type        = connection.steampipe
     description = local.description_database
@@ -269,22 +270,34 @@ variable "dataproc_clusters_without_autoscaling_trigger_enabled" {
   type        = bool
   default     = false
   description = "If true, the trigger is enabled."
+  tags = {
+    folder = "Advanced/Dataproc"
+  }
 }
 
 variable "dataproc_clusters_without_autoscaling_trigger_schedule" {
   type        = string
   default     = "15m"
   description = "The schedule on which to run the trigger if enabled."
+  tags = {
+    folder = "Advanced/Dataproc"
+  }
 }
 
 variable "dataproc_clusters_without_autoscaling_default_action" {
   type        = string
   description = "The default action to use for the detected item, used if no input is provided."
   default     = "notify"
+  tags = {
+    folder = "Advanced/Dataproc"
+  }
 }
 
 variable "dataproc_clusters_without_autoscaling_enabled_actions" {
   type        = list(string)
   description = "The list of enabled actions to provide to approvers for selection."
   default     = ["skip", "delete_dataproc_cluster"]
+  tags = {
+    folder = "Advanced/Dataproc"
+  }
 }
