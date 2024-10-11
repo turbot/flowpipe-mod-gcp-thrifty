@@ -21,7 +21,7 @@ locals {
 locals {
   description_database         = "Database connection string."
   description_approvers        = "List of notifiers to be used for obtaining action/approval decisions."
-  description_credential       = "Name of the credential to be used for any authenticated actions."
+  description_connection       = "Name of the GCP connection to be used for any authenticated actions."
   description_project          = "GCP Project ID of the resource(s)."
   description_location         = "GCP Location of the resource(s)."
   description_zone             = "GCP Zone of the resource(s)."

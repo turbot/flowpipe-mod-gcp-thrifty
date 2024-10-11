@@ -12,10 +12,10 @@ mod "gcp_thrifty" {
   }
   require {
     mod "github.com/turbot/flowpipe-mod-detect-correct" {
-      version = "*"
+      version = "v1.0.0-rc.0"
     }
     mod "github.com/turbot/flowpipe-mod-gcp" {
-      version = "v0.3.0-rc.0"
+      version = "v1.0.0-rc.0"
     }
   }
 }
