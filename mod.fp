@@ -4,7 +4,7 @@ mod "gcp_thrifty" {
   color         = "#ea4335"
   documentation = file("./README.md")
   icon          = "/images/mods/turbot/gcp-thrifty.svg"
-  categories    = ["gcp", "cost", "thrifty", "public cloud"]
+  categories    = ["gcp", "cost", "public cloud", "standard", "thrifty"]
   opengraph {
     title       = "GCP Thrifty Mod for Flowpipe"
     description = "Run pipelines to detect and correct GCP resources that are unused and underutilized."
