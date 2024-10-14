@@ -5,12 +5,17 @@ mod "gcp_thrifty" {
   documentation = file("./README.md")
   icon          = "/images/mods/turbot/gcp-thrifty.svg"
   categories    = ["gcp", "cost", "public cloud", "standard", "thrifty"]
+
   opengraph {
     title       = "GCP Thrifty Mod for Flowpipe"
     description = "Run pipelines to detect and correct GCP resources that are unused and underutilized."
     image       = "/images/mods/turbot/gcp-thrifty-social-graphic.png"
   }
+
   require {
+    flowpipe {
+      min_version = "1.0.0"
+    }
     mod "github.com/turbot/flowpipe-mod-detect-correct" {
       version = "v1.0.0-rc.0"
     }
