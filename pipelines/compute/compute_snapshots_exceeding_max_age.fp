@@ -235,7 +235,7 @@ pipeline "correct_one_compute_snapshot_exceeding_max_age" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -248,7 +248,7 @@ pipeline "correct_one_compute_snapshot_exceeding_max_age" {
           label        = "Delete Snapshot"
           value        = "delete_snapshot"
           style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_delete_compute_snapshot
+          pipeline_ref = gcp.pipeline.delete_compute_snapshot
           pipeline_args = {
             snapshot_name = param.name
             project_id    = param.project

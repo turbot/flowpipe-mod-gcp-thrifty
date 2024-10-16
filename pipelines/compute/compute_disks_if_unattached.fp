@@ -242,7 +242,7 @@ pipeline "correct_one_compute_disk_if_unattached" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -255,7 +255,7 @@ pipeline "correct_one_compute_disk_if_unattached" {
           label        = "Delete Compute Disk"
           value        = "delete_compute_disk"
           style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_delete_compute_disk
+          pipeline_ref = gcp.pipeline.delete_compute_disk
           pipeline_args = {
             disk_name  = param.disk_name
             zone       = param.zone
@@ -309,7 +309,7 @@ pipeline "snapshot_and_delete_compute_disk" {
   }
 
   step "pipeline" "create_compute_snapshot" {
-    pipeline = local.gcp_pipeline_create_compute_snapshot
+    pipeline = gcp.pipeline.create_compute_snapshot
     args = {
       source_disk_name = param.disk_name
       source_disk_zone = param.zone
@@ -321,7 +321,7 @@ pipeline "snapshot_and_delete_compute_disk" {
 
   step "pipeline" "delete_compute_disk" {
     depends_on = [step.pipeline.create_compute_snapshot]
-    pipeline   = local.gcp_pipeline_delete_compute_disk
+    pipeline   = gcp.pipeline.delete_compute_disk
     args = {
       disk_name  = param.disk_name
       zone       = param.zone

@@ -252,7 +252,7 @@ pipeline "correct_one_compute_disk_attached_to_stopped_instance" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -265,7 +265,7 @@ pipeline "correct_one_compute_disk_attached_to_stopped_instance" {
           label        = "Detach disk"
           value        = "detach_disk"
           style        = local.style_info
-          pipeline_ref = local.gcp_pipeline_detach_compute_disk
+          pipeline_ref = gcp.pipeline.detach_compute_disk_from_instance
           pipeline_args = {
             disk_name     = param.disk_name
             project_id    = param.project
@@ -341,7 +341,7 @@ pipeline "detach_and_delete_compute_disk" {
   }
 
   step "pipeline" "detach_compute_disk" {
-    pipeline = local.gcp_pipeline_detach_compute_disk
+    pipeline = gcp.pipeline.detach_compute_disk_from_instance
     args = {
       disk_name     = param.disk_name
       instance_name = param.instance_name
@@ -353,7 +353,7 @@ pipeline "detach_and_delete_compute_disk" {
 
   step "pipeline" "delete_compute_disk" {
     depends_on = [step.pipeline.detach_compute_disk]
-    pipeline   = local.gcp_pipeline_delete_compute_disk
+    pipeline   = gcp.pipeline.delete_compute_disk
     args = {
       disk_name  = param.disk_name
       project_id = param.project
@@ -393,7 +393,7 @@ pipeline "snapshot_detach_and_delete_disk" {
   }
 
   step "pipeline" "create_compute_snapshot" {
-    pipeline = local.gcp_pipeline_create_compute_snapshot
+    pipeline = gcp.pipeline.create_compute_snapshot
     args = {
       source_disk_name = param.disk_name
       source_disk_zone = param.zone
@@ -405,7 +405,7 @@ pipeline "snapshot_detach_and_delete_disk" {
 
   step "pipeline" "detach_compute_disk" {
     depends_on = [step.pipeline.create_compute_snapshot]
-    pipeline   = local.gcp_pipeline_detach_compute_disk
+    pipeline   = gcp.pipeline.detach_compute_disk_from_instance
     args = {
       disk_name     = param.disk_name
       instance_name = param.instance_name
@@ -417,7 +417,7 @@ pipeline "snapshot_detach_and_delete_disk" {
 
   step "pipeline" "delete_compute_disk" {
     depends_on = [step.pipeline.detach_compute_disk]
-    pipeline   = local.gcp_pipeline_delete_compute_disk
+    pipeline   = gcp.pipeline.delete_compute_disk
     args = {
       disk_name  = param.disk_name
       project_id = param.project

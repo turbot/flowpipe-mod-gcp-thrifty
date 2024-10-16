@@ -280,7 +280,7 @@ pipeline "correct_one_compute_disk_with_low_usage" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -293,7 +293,7 @@ pipeline "correct_one_compute_disk_with_low_usage" {
           label        = "Delete Compute disk"
           value        = "delete_disk"
           style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_delete_compute_disk
+          pipeline_ref = gcp.pipeline.delete_compute_disk
           pipeline_args = {
             project_id = param.project
             zone       = param.zone

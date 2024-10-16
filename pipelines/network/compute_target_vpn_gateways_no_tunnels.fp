@@ -238,7 +238,7 @@ pipeline "correct_one_vpn_gateway_with_no_tunnels" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -251,7 +251,7 @@ pipeline "correct_one_vpn_gateway_with_no_tunnels" {
           label        = "Delete VPN Gateway"
           value        = "delete_vpn_gateway"
           style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_delete_vpn_gateway
+          pipeline_ref = gcp.pipeline.delete_vpn_gateway
           pipeline_args = {
             conn             = param.conn
             vpn_gateway_name = param.name

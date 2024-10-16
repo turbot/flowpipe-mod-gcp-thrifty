@@ -238,7 +238,7 @@ pipeline "correct_one_kubernetes_cluster_vertical_pod_autoscaling_disabled" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -251,7 +251,7 @@ pipeline "correct_one_kubernetes_cluster_vertical_pod_autoscaling_disabled" {
           label        = "Delete GKE Cluster"
           value        = "delete_kubernetes_cluster"
           style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_delete_kubernetes_cluster
+          pipeline_ref = gcp.pipeline.delete_kubernetes_cluster
           pipeline_args = {
             cluster_name = param.name
             conn         = param.conn

@@ -242,7 +242,7 @@ pipeline "correct_one_compute_address_if_unattached" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -255,7 +255,7 @@ pipeline "correct_one_compute_address_if_unattached" {
           label        = "Delete Compute Address"
           value        = "delete"
           style        = local.style_ok
-          pipeline_ref = local.gcp_pipeline_delete_compute_address
+          pipeline_ref = gcp.pipeline.delete_compute_address
           pipeline_args = {
             address_name = param.address_name
             region       = param.location

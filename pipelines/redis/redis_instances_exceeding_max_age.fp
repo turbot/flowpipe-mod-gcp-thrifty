@@ -243,7 +243,7 @@ pipeline "correct_one_redis_instance_exceeding_max_age" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -256,7 +256,7 @@ pipeline "correct_one_redis_instance_exceeding_max_age" {
           label        = "Delete Redis Instance"
           value        = "delete_redis_instance"
           style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_delete_redis_instance
+          pipeline_ref = gcp.pipeline.delete_redis_instance
           pipeline_args = {
             instance_name = param.name
             project_id    = param.project

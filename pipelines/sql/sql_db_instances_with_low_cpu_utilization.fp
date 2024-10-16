@@ -247,7 +247,7 @@ pipeline "correct_one_sql_db_instance_with_low_cpu_utilization" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -260,7 +260,7 @@ pipeline "correct_one_sql_db_instance_with_low_cpu_utilization" {
           label        = "Stop Instance"
           value        = "stop_sql_instance"
           style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_stop_sql_instance
+          pipeline_ref = gcp.pipeline.stop_sql_instance
           pipeline_args = {
             conn          = param.conn
             project_id    = param.project
@@ -273,7 +273,7 @@ pipeline "correct_one_sql_db_instance_with_low_cpu_utilization" {
           label        = "Delete Instance"
           value        = "delete_instance"
           style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_delete_sql_instance
+          pipeline_ref = gcp.pipeline.delete_sql_instance
           pipeline_args = {
             conn          = param.conn
             instance_name = param.instance_name

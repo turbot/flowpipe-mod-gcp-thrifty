@@ -230,7 +230,7 @@ pipeline "correct_one_storage_bucket_without_lifecycle_policy" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -243,7 +243,7 @@ pipeline "correct_one_storage_bucket_without_lifecycle_policy" {
           label        = "Delete All Objects and Storage Bucket"
           value        = "delete_all_objects_and_storage_bucket"
           style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_delete_all_objects_and_storage_bucket
+          pipeline_ref = gcp.pipeline.delete_all_objects_and_storage_bucket
           pipeline_args = {
             bucket_url = "gs://${param.name}"
             project_id = param.project
@@ -256,7 +256,7 @@ pipeline "correct_one_storage_bucket_without_lifecycle_policy" {
           label        = "Delete Storage Bucket"
           value        = "delete_storage_bucket"
           style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_delete_storage_buckets
+          pipeline_ref = gcp.pipeline.delete_storage_buckets
           pipeline_args = {
             bucket_urls = ["gs://${param.name}"]
             conn        = param.conn

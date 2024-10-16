@@ -243,7 +243,7 @@ pipeline "correct_one_compute_instance_large" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -256,7 +256,7 @@ pipeline "correct_one_compute_instance_large" {
           label        = "Stop Compute Instance"
           value        = "stop_instance"
           style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_stop_compute_instance
+          pipeline_ref = gcp.pipeline.stop_compute_instance
           pipeline_args = {
             instance_name = param.instance_name
             zone          = param.zone
@@ -270,7 +270,7 @@ pipeline "correct_one_compute_instance_large" {
           label        = "Terminate Compute Instance"
           value        = "terminate_instance"
           style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_terminate_compute_instance
+          pipeline_ref = gcp.pipeline.delete_compute_instance
           pipeline_args = {
             instance_name = param.instance_name
             zone          = param.zone

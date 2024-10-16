@@ -263,7 +263,7 @@ pipeline "correct_one_logging_bucket_with_high_retention" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -276,7 +276,7 @@ pipeline "correct_one_logging_bucket_with_high_retention" {
           label        = "Update Retention Period"
           value        = "update_retention"
           style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_update_logging_bucket
+          pipeline_ref = gcp.pipeline.update_logging_bucket
           pipeline_args = {
             bucket_id      = param.bucket_name
             location       = param.location

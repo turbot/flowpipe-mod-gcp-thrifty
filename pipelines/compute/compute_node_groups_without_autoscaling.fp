@@ -248,7 +248,7 @@ pipeline "correct_one_compute_node_group_without_autoscaling" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -261,7 +261,7 @@ pipeline "correct_one_compute_node_group_without_autoscaling" {
           label        = "Enable Autoscaling Policy"
           value        = "enable_autoscaling_policy"
           style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_update_compute_node_group
+          pipeline_ref = gcp.pipeline.update_compute_node_group
           pipeline_args = {
             autoscaler_mode = "on"
             max_nodes       = param.max_nodes

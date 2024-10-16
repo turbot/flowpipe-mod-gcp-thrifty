@@ -99,17 +99,10 @@ pipeline "correct_sql_db_instances_exceeding_max_age" {
 
   param "items" {
     type = list(object({
-<<<<<<< HEAD
       title    = string
       name     = string
       project  = string
       conn     = string
-=======
-      title   = string
-      name    = string
-      project = string
-      cred    = string
->>>>>>> 4a5a8e519ab7c0161993452c4a426d068de8b9a3
     }))
     description = local.description_items
   }
@@ -242,7 +235,7 @@ pipeline "correct_one_sql_db_instance_exceeding_max_age" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -255,7 +248,7 @@ pipeline "correct_one_sql_db_instance_exceeding_max_age" {
           label        = "Delete SQL Database Instance"
           value        = "delete_sql_db_instance"
           style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_delete_sql_instance
+          pipeline_ref = gcp.pipeline.delete_sql_instance
           pipeline_args = {
             conn          = param.conn
             instance_name = param.name

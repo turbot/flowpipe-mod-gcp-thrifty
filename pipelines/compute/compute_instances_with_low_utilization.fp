@@ -261,7 +261,7 @@ pipeline "correct_one_compute_instance_with_low_utilization" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -289,7 +289,7 @@ pipeline "correct_one_compute_instance_with_low_utilization" {
           label        = "Stop Instance"
           value        = "stop_instance"
           style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_stop_compute_instance
+          pipeline_ref = gcp.pipeline.stop_compute_instance
           pipeline_args = {
             instance_name = param.instance_name
             project_id    = param.project
@@ -339,7 +339,7 @@ pipeline "stop_downgrade_compute_instance" {
   }
 
   step "pipeline" "stop_compute_instance" {
-    pipeline = local.gcp_pipeline_stop_compute_instance
+    pipeline = gcp.pipeline.stop_compute_instance
     args = {
       instance_name = param.instance_name
       project_id    = param.project_id
@@ -350,7 +350,7 @@ pipeline "stop_downgrade_compute_instance" {
 
   step "pipeline" "downgrade_instance_type" {
     depends_on = [step.pipeline.stop_compute_instance]
-    pipeline   = local.gcp_pipeline_set_compute_instance_machine_type
+    pipeline   = gcp.pipeline.set_compute_instance_machine_type
     args = {
       instance_name = param.instance_name
       machine_type  = param.machine_type
@@ -362,7 +362,7 @@ pipeline "stop_downgrade_compute_instance" {
 
   step "pipeline" "start_compute_instance" {
     depends_on = [step.pipeline.downgrade_instance_type]
-    pipeline   = local.gcp_pipeline_start_compute_instance
+    pipeline   = gcp.pipeline.start_compute_instance
     args = {
       instance_name = param.instance_name
       project_id    = param.project_id
