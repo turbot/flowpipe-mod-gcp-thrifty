@@ -11,6 +11,49 @@ locals {
     where
       users is null;
   EOQ
+
+  compute_disks_if_unattached_enabled_actions = ["skip", "delete_compute_disk", "snapshot_and_delete_compute_disk"]
+  compute_disks_if_unattached_default_action  = ["notify", "skip", "delete_compute_disk", "snapshot_and_delete_compute_disk"]
+}
+
+variable "compute_disks_if_unattached_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+  tags = {
+    folder = "Advanced/Compute"
+  }
+}
+
+variable "compute_disks_if_unattached_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "The schedule on which to run the trigger if enabled."
+  tags = {
+    folder = "Advanced/Compute"
+  }
+}
+
+variable "compute_disks_if_unattached_default_action" {
+  type        = string
+  description = "The default action to use for the detected item, used if no input is provided."
+  default     = "notify"
+  enum        = ["notify", "skip", "delete_compute_disk", "snapshot_and_delete_compute_disk"]
+
+  tags = {
+    folder = "Advanced/Compute"
+  }
+}
+
+variable "compute_disks_if_unattached_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions to provide to approvers for selection."
+  default     = ["skip", "delete_compute_disk", "snapshot_and_delete_compute_disk"]
+  enum        = ["skip", "delete_compute_disk", "snapshot_and_delete_compute_disk"]
+
+  tags = {
+    folder = "Advanced/Compute"
+  }
 }
 
 trigger "query" "detect_and_correct_compute_disks_if_unattached" {
@@ -66,12 +109,14 @@ pipeline "detect_and_correct_compute_disks_if_unattached" {
     type        = string
     description = local.description_default_action
     default     = var.compute_disks_if_unattached_default_action
+    enum        = local.compute_disks_if_unattached_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.compute_disks_if_unattached_enabled_actions
+    enum        = local.compute_disks_if_unattached_enabled_actions
   }
 
   step "query" "detect" {
@@ -130,12 +175,14 @@ pipeline "correct_compute_disks_if_unattached" {
     type        = string
     description = local.description_default_action
     default     = var.compute_disks_if_unattached_default_action
+    enum        = local.compute_disks_if_unattached_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.compute_disks_if_unattached_enabled_actions
+    enum        = local.compute_disks_if_unattached_enabled_actions
   }
 
   step "message" "notify_detection_count" {
@@ -220,12 +267,14 @@ pipeline "correct_one_compute_disk_if_unattached" {
     type        = string
     description = local.description_default_action
     default     = var.compute_disks_if_unattached_default_action
+    enum        = local.compute_disks_if_unattached_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.compute_disks_if_unattached_enabled_actions
+    enum        = local.compute_disks_if_unattached_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -328,41 +377,5 @@ pipeline "snapshot_and_delete_compute_disk" {
       project_id = param.project
       conn       = param.conn
     }
-  }
-}
-
-variable "compute_disks_if_unattached_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-  tags = {
-    folder = "Advanced/Compute"
-  }
-}
-
-variable "compute_disks_if_unattached_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "The schedule on which to run the trigger if enabled."
-  tags = {
-    folder = "Advanced/Compute"
-  }
-}
-
-variable "compute_disks_if_unattached_default_action" {
-  type        = string
-  description = "The default action to use for the detected item, used if no input is provided."
-  default     = "notify"
-  tags = {
-    folder = "Advanced/Compute"
-  }
-}
-
-variable "compute_disks_if_unattached_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "delete_compute_disk", "snapshot_and_delete_compute_disk"]
-  tags = {
-    folder = "Advanced/Compute"
   }
 }

@@ -12,6 +12,58 @@ locals {
       status in ('RUNNING', 'PROVISIONING', 'STAGING', 'REPAIRING')
       and machine_type_name not like any (array[${join(",", formatlist("'%s'", var.compute_instances_large_allowed_types))}])
   EOQ
+
+  compute_instances_large_default_action  = ["notify", "skip", "stop_instance", "terminate_instance"]
+  compute_instances_large_enabled_actions = ["skip", "stop_instance", "terminate_instance"]
+}
+
+variable "compute_instances_large_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+  tags = {
+    folder = "Advanced/Compute"
+  }
+}
+
+variable "compute_instances_large_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "The schedule on which to run the trigger if enabled."
+  tags = {
+    folder = "Advanced/Compute"
+  }
+}
+
+variable "compute_instances_large_allowed_types" {
+  type        = list(string)
+  description = "A list of allowed instance types. PostgreSQL wildcards are supported."
+  default     = ["custom-1-1024", "custom-2-2048", "custom-4-4096", "custom-8-8192", "custom-16-16384", "custom-32-32768", "custom-64-65536", "custom-96-98304", "custom-128-131072", "custom-224-229376"]
+  tags = {
+    folder = "Advanced/Compute"
+  }
+}
+
+variable "compute_instances_large_default_action" {
+  type        = string
+  description = "The default action to use for the detected item, used if no input is provided."
+  default     = "notify"
+  enum        = ["notify", "skip", "stop_instance", "terminate_instance"]
+
+  tags = {
+    folder = "Advanced/Compute"
+  }
+}
+
+variable "compute_instances_large_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions to provide to approvers for selection."
+  default     = ["skip", "stop_instance", "terminate_instance"]
+  enum        = ["skip", "stop_instance", "terminate_instance"]
+
+  tags = {
+    folder = "Advanced/Compute"
+  }
 }
 
 trigger "query" "detect_and_correct_compute_instances_large" {
@@ -67,12 +119,14 @@ pipeline "detect_and_correct_compute_instances_large" {
     type        = string
     description = local.description_default_action
     default     = var.compute_instances_large_default_action
+    enum        = local.compute_instances_large_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.compute_instances_large_enabled_actions
+    enum        = local.compute_instances_large_enabled_actions
   }
 
   step "query" "detect" {
@@ -131,12 +185,14 @@ pipeline "correct_compute_instances_large" {
     type        = string
     description = local.description_default_action
     default     = var.compute_instances_large_default_action
+    enum        = local.compute_instances_large_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.compute_instances_large_enabled_actions
+    enum        = local.compute_instances_large_enabled_actions
   }
 
   step "message" "notify_detection_count" {
@@ -221,12 +277,14 @@ pipeline "correct_one_compute_instance_large" {
     type        = string
     description = local.description_default_action
     default     = var.compute_instances_large_default_action
+    enum        = local.compute_instances_large_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.compute_instances_large_enabled_actions
+    enum        = local.compute_instances_large_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -282,50 +340,5 @@ pipeline "correct_one_compute_instance_large" {
         }
       }
     }
-  }
-}
-
-variable "compute_instances_large_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-  tags = {
-    folder = "Advanced/Compute"
-  }
-}
-
-variable "compute_instances_large_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "The schedule on which to run the trigger if enabled."
-  tags = {
-    folder = "Advanced/Compute"
-  }
-}
-
-variable "compute_instances_large_allowed_types" {
-  type        = list(string)
-  description = "A list of allowed instance types. PostgreSQL wildcards are supported."
-  default     = ["custom-1-1024", "custom-2-2048", "custom-4-4096", "custom-8-8192", "custom-16-16384", "custom-32-32768", "custom-64-65536", "custom-96-98304", "custom-128-131072", "custom-224-229376"]
-  tags = {
-    folder = "Advanced/Compute"
-  }
-}
-
-variable "compute_instances_large_default_action" {
-  type        = string
-  description = "The default action to use for the detected item, used if no input is provided."
-  default     = "notify"
-  tags = {
-    folder = "Advanced/Compute"
-  }
-}
-
-variable "compute_instances_large_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "stop_instance", "terminate_instance"]
-  tags = {
-    folder = "Advanced/Compute"
   }
 }
