@@ -150,7 +150,7 @@ pipeline "correct_compute_disks_exceeding_max_size" {
   title         = "Correct Compute disks exceeding max size"
   description   = "Runs corrective action on a collection of Compute disks exceeding maximum size."
   documentation = file("./pipelines/compute/docs/correct_compute_disks_exceeding_max_size.md")
-  tags          = merge(local.compute_common_tags, { class = "managed" })
+  tags          = merge(local.compute_common_tags, { class = "managed", class = "internal" })
 
   param "items" {
     type = list(object({
@@ -227,7 +227,7 @@ pipeline "correct_one_compute_disk_exceeding_max_size" {
   title         = "Correct one Compute disk exceeding max size"
   description   = "Runs corrective action on a Compute disk exceeding maximum size."
   documentation = file("./pipelines/compute/docs/correct_one_compute_disk_exceeding_max_size.md")
-  tags          = merge(local.compute_common_tags, { class = "managed" })
+  tags          = merge(local.compute_common_tags, { class = "managed", class = "internal" })
 
   param "project" {
     type        = string

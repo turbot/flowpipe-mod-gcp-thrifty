@@ -150,7 +150,7 @@ pipeline "correct_compute_node_groups_without_autoscaling" {
   title         = "Correct Compute node groups without autoscaling"
   description   = "Runs corrective action on a collection of Compute node groups without autoscaling."
   documentation = file("./pipelines/compute/docs/correct_compute_node_groups_without_autoscaling.md")
-  tags          = merge(local.compute_common_tags, { class = "unused" })
+  tags          = merge(local.compute_common_tags, { class = "unused", class = "internal" })
 
   param "items" {
     type = list(object({
@@ -227,7 +227,7 @@ pipeline "correct_one_compute_node_group_without_autoscaling" {
   title         = "Correct one Compute node group without autoscaling"
   description   = "Runs corrective action on an Compute node group without autoscaling."
   documentation = file("./pipelines/compute/docs/correct_one_compute_node_group_without_autoscaling.md")
-  tags          = merge(local.compute_common_tags, { class = "unused" })
+  tags          = merge(local.compute_common_tags, { class = "unused", class = "internal" })
 
   param "name" {
     type        = string
@@ -282,7 +282,7 @@ pipeline "correct_one_compute_node_group_without_autoscaling" {
     type        = string
     description = local.description_default_action
     default     = var.compute_node_groups_without_autoscaling_default_action
-    enum = local.compute_node_groups_without_autoscaling_default_action
+    enum        = local.compute_node_groups_without_autoscaling_default_action
   }
 
   param "enabled_actions" {

@@ -141,7 +141,7 @@ pipeline "correct_compute_disks_if_unattached" {
   title         = "Correct Compute disks if unattached"
   description   = "Runs corrective action on a collection of Compute disks which are unattached."
   documentation = file("./pipelines/compute/docs/correct_compute_disks_if_unattached.md")
-  tags          = merge(local.compute_common_tags, { class = "unused" })
+  tags          = merge(local.compute_common_tags, { class = "unused", class = "internal" })
 
   param "items" {
     type = list(object({
@@ -218,7 +218,7 @@ pipeline "correct_one_compute_disk_if_unattached" {
   title         = "Correct one Compute disk if unattached"
   description   = "Runs corrective action on a Compute disk unattached."
   documentation = file("./pipelines/compute/docs/correct_one_compute_disk_if_unattached.md")
-  tags          = merge(local.compute_common_tags, { class = "unused" })
+  tags          = merge(local.compute_common_tags, { class = "unused", class = "internal" })
 
   param "title" {
     type        = string
@@ -336,6 +336,7 @@ pipeline "correct_one_compute_disk_if_unattached" {
 pipeline "snapshot_and_delete_compute_disk" {
   title       = "Snapshot & Delete Compute disk"
   description = "A utility pipeline which snapshots and deletes a compute disk."
+  tags        = merge(local.compute_common_tags, { class = "internal" })
 
   param "disk_name" {
     type        = string

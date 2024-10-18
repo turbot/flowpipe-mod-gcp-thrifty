@@ -162,7 +162,7 @@ pipeline "correct_sql_db_instances_with_low_cpu_utilization" {
   title         = "Correct SQL DB instances with low cpu utilization"
   description   = "Runs corrective action on a collection of SQL DB instances with low cpu utilization."
   documentation = file("./pipelines/sql/docs/correct_sql_db_instances_with_low_cpu_utilization.md")
-  tags          = merge(local.sql_common_tags, { class = "unused" })
+  tags          = merge(local.sql_common_tags, { class = "unused", class = "internal" })
 
   param "items" {
     type = list(object({
@@ -237,7 +237,7 @@ pipeline "correct_one_sql_db_instance_with_low_cpu_utilization" {
   title         = "Correct one SQL DB instance with low cpu utilization"
   description   = "Runs corrective action on a SQL DB instance with low cpu utilization."
   documentation = file("./pipelines/sql/docs/correct_one_sql_db_instance_with_low_cpu_utilization.md")
-  tags          = merge(local.sql_common_tags, { class = "unused" })
+  tags          = merge(local.sql_common_tags, { class = "unused", class = "internal" })
 
   param "instance_name" {
     type        = string

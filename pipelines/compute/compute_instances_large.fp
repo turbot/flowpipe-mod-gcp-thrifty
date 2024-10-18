@@ -151,7 +151,7 @@ pipeline "correct_compute_instances_large" {
   title         = "Correct Compute engine instances large"
   description   = "Executes corrective actions on large Compute engine instances."
   documentation = file("./pipelines/compute/docs/correct_compute_instances_large.md")
-  tags          = merge(local.compute_common_tags, { class = "unused" })
+  tags          = merge(local.compute_common_tags, { class = "unused", class = "internal" })
 
   param "items" {
     type = list(object({
@@ -228,7 +228,7 @@ pipeline "correct_one_compute_instance_large" {
   title         = "Correct one Compute engine instance large"
   description   = "Runs corrective action on a single large Compute engine instance."
   documentation = file("./pipelines/compute/docs/correct_one_compute_instance_large.md")
-  tags          = merge(local.compute_common_tags, { class = "unused" })
+  tags          = merge(local.compute_common_tags, { class = "unused", class = "internal" })
 
   param "conn" {
     type        = connection.gcp

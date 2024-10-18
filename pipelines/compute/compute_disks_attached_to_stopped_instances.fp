@@ -144,7 +144,7 @@ pipeline "correct_compute_disks_attached_to_stopped_instances" {
   title         = "Correct Compute disks attached to stopped instances"
   description   = "Runs corrective action on a collection of Compute disks attached to stopped instance."
   documentation = file("./pipelines/compute/docs/correct_compute_disks_attached_to_stopped_instances.md")
-  tags          = merge(local.compute_common_tags, { class = "unused" })
+  tags          = merge(local.compute_common_tags, { class = "unused", class = "internal" })
 
   param "items" {
     type = list(object({
@@ -223,7 +223,7 @@ pipeline "correct_one_compute_disk_attached_to_stopped_instance" {
   title         = "Correct one Compute disk attached to stopped instance"
   description   = "Runs corrective action on a Compute disk attached to a stopped instance."
   documentation = file("./pipelines/compute/docs/correct_one_compute_disk_attached_to_stopped_instance.md")
-  tags          = merge(local.compute_common_tags, { class = "unused" })
+  tags          = merge(local.compute_common_tags, { class = "unused", class = "internal" })
 
   param "project" {
     type        = string
@@ -363,6 +363,7 @@ pipeline "correct_one_compute_disk_attached_to_stopped_instance" {
 pipeline "detach_and_delete_compute_disk" {
   title       = "Detach & delete Compute disk"
   description = "A utility pipeline which snapshots and deletes a Compute disk."
+  tags        = merge(local.compute_common_tags, { class = "internal" })
 
   param "instance_name" {
     type        = string
@@ -415,6 +416,7 @@ pipeline "detach_and_delete_compute_disk" {
 pipeline "snapshot_detach_and_delete_disk" {
   title       = "Snapshot & Detach & Delete Compute disk"
   description = "A utility pipeline which snapshots and deletes a Compute disk."
+  tags        = merge(local.compute_common_tags, { class = "internal" })
 
   param "project" {
     type        = string
