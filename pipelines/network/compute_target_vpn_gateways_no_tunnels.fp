@@ -141,7 +141,7 @@ pipeline "correct_vpn_gateways_with_no_tunnels" {
   title         = "Correct VPN gateways with no tunnels"
   description   = "Runs corrective action on VPN gateways with no tunnels attached."
   documentation = file("./pipelines/network/docs/correct_vpn_gateways_with_no_tunnels.md")
-  tags          = merge(local.network_common_tags, { class = "unused", class = "internal" })
+  tags          = merge(local.network_common_tags, { class = "unused", folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -214,7 +214,7 @@ pipeline "correct_one_vpn_gateway_with_no_tunnels" {
   title         = "Correct one VPN gateway with no tunnels"
   description   = "Runs corrective action on a VPN gateway with no tunnels attached."
   documentation = file("./pipelines/network/docs/correct_one_vpn_gateway_with_no_tunnels.md")
-  tags          = merge(local.network_common_tags, { class = "unused", class = "internal" })
+  tags          = merge(local.network_common_tags, { class = "unused", folder = "Internal" })
 
   param "title" {
     type        = string

@@ -188,7 +188,7 @@ pipeline "correct_compute_disks_with_low_usage" {
   title         = "Correct Compute disks with low usage"
   description   = "Runs corrective action on a collection of Compute disks with low usage."
   documentation = file("./pipelines/compute/docs/correct_compute_disks_with_low_usage.md")
-  tags          = merge(local.compute_common_tags, { class = "unused", class = "internal" })
+  tags          = merge(local.compute_common_tags, { class = "unused", folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -265,7 +265,7 @@ pipeline "correct_one_compute_disk_with_low_usage" {
   title         = "Correct one Compute disk with low usage"
   description   = "Runs corrective action on a Compute disk with low usage."
   documentation = file("./pipelines/compute/docs/correct_one_compute_disk_with_low_usage.md")
-  tags          = merge(local.compute_common_tags, { class = "unused", class = "internal" })
+  tags          = merge(local.compute_common_tags, { class = "unused", folder = "Internal" })
 
   param "disk_name" {
     type        = string

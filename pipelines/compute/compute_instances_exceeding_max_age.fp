@@ -151,7 +151,7 @@ pipeline "correct_compute_instances_exceeding_max_age" {
   title         = "Correct Compute engine instances exceeding max age"
   description   = "Executes corrective actions on Compute engine instances exceeding max age."
   documentation = file("./pipelines/compute/docs/correct_compute_instances_exceeding_max_age.md")
-  tags          = merge(local.compute_common_tags, { class = "unused", class = "internal" })
+  tags          = merge(local.compute_common_tags, { class = "unused", folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -228,7 +228,7 @@ pipeline "correct_one_compute_instance_exceeding_max_age" {
   title         = "Correct one Compute engine instance exceeding max age"
   description   = "Runs corrective action on a single Compute engine instance exceeding max age."
   documentation = file("./pipelines/compute/docs/correct_one_compute_instance_exceeding_max_age.md")
-  tags          = merge(local.compute_common_tags, { class = "unused", class = "internal" })
+  tags          = merge(local.compute_common_tags, { class = "unused", folder = "Internal" })
 
   param "conn" {
     type        = connection.gcp

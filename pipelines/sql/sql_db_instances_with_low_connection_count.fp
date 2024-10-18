@@ -153,7 +153,7 @@ pipeline "correct_sql_db_instances_with_low_connection_count" {
   title         = "Correct SQL DB instances with low connection count"
   description   = "Runs corrective action on a collection of SQL DB instances with low connection count."
   documentation = file("./pipelines/sql/docs/correct_sql_db_instances_with_low_connection_count.md")
-  tags          = merge(local.sql_common_tags, { class = "unused", class = "internal" })
+  tags          = merge(local.sql_common_tags, { class = "unused", folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -228,7 +228,7 @@ pipeline "correct_one_sql_db_instance_with_low_connection_count" {
   title         = "Correct one SQL DB instance with low connection count"
   description   = "Runs corrective action on a SQL DB instance with low connection count."
   documentation = file("./pipelines/sql/docs/correct_one_sql_db_instance_with_low_connection_count.md")
-  tags          = merge(local.sql_common_tags, { class = "unused", class = "internal" })
+  tags          = merge(local.sql_common_tags, { class = "unused", folder = "Internal" })
 
   param "title" {
     type        = string

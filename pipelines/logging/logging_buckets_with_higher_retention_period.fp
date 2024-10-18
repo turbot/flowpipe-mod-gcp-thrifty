@@ -167,7 +167,7 @@ pipeline "correct_logging_buckets_with_high_retention" {
   title         = "Correct Logging Buckets with high retention period"
   description   = "Runs corrective action on a collection of Logging Buckets with high retention periods."
   documentation = file("./pipelines/logging/docs/correct_logging_buckets_with_high_retention.md")
-  tags          = merge(local.logging_common_tags, { class = "unused", class = "internal" })
+  tags          = merge(local.logging_common_tags, { class = "unused", folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -251,7 +251,7 @@ pipeline "correct_one_logging_bucket_with_high_retention" {
   title         = "Correct one Logging Bucket with high retention period"
   description   = "Runs corrective action on a Logging Bucket with high retention period."
   documentation = file("./pipelines/logging/docs/correct_one_logging_bucket_with_high_retention.md")
-  tags          = merge(local.logging_common_tags, { class = "unused", class = "internal" })
+  tags          = merge(local.logging_common_tags, { class = "unused", folder = "Internal" })
 
   param "bucket_name" {
     type        = string

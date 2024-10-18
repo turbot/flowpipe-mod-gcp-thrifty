@@ -150,7 +150,7 @@ pipeline "correct_redis_instances_exceeding_max_age" {
   title         = "Correct Redis instances exceeding max age"
   description   = "Runs corrective action on a collection of long-running Redis instances."
   documentation = file("./pipelines/redis/docs/correct_redis_instances_exceeding_max_age.md")
-  tags          = merge(local.redis_common_tags, { class = "unused", class = "internal" })
+  tags          = merge(local.redis_common_tags, { class = "unused", folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -228,7 +228,7 @@ pipeline "correct_one_redis_instance_exceeding_max_age" {
   title         = "Correct one Redis instance exceeding max age"
   description   = "Runs corrective action on a Redis instance that has been running for too long."
   documentation = file("./pipelines/redis/docs/correct_one_redis_instance_exceeding_max_age.md")
-  tags          = merge(local.redis_common_tags, { class = "unused", class = "internal" })
+  tags          = merge(local.redis_common_tags, { class = "unused", folder = "Internal" })
 
   param "name" {
     type        = string

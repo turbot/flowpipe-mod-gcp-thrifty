@@ -172,7 +172,7 @@ pipeline "correct_compute_instances_with_low_utilization" {
   title         = "Correct Compute instances with low utilization"
   description   = "Corrects Compute instances with low utilization based on the chosen action."
   documentation = file("./pipelines/compute/docs/correct_compute_instances_with_low_utilization.md")
-  tags          = merge(local.compute_common_tags, { class = "unused", class = "internal" })
+  tags          = merge(local.compute_common_tags, { class = "unused", folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -249,7 +249,7 @@ pipeline "correct_one_compute_instance_with_low_utilization" {
   title         = "Correct one Compute instance with low utilization"
   description   = "Runs corrective action on a single Compute instance with low utilization."
   documentation = file("./pipelines/compute/docs/correct_one_compute_instance_with_low_utilization.md")
-  tags          = merge(local.compute_common_tags, { class = "unused", class = "internal" })
+  tags          = merge(local.compute_common_tags, { class = "unused", folder = "Internal" })
 
   param "instance_name" {
     type        = string
@@ -374,7 +374,7 @@ pipeline "correct_one_compute_instance_with_low_utilization" {
 pipeline "stop_downgrade_compute_instance" {
   title       = "Stop & downgrade Compute instance"
   description = "Stops a Compute instance and downgrades its instance type."
-  tags        = merge(local.compute_common_tags, { class = "internal" })
+  tags        = merge(local.compute_common_tags, { folder = "Internal" })
 
   param "instance_name" {
     type        = string

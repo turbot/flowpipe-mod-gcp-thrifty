@@ -141,7 +141,7 @@ pipeline "correct_compute_addresses_if_unattached" {
   title         = "Correct Compute addresses if unattached"
   description   = "Runs corrective action on a collection of Compute addresses that are unattached."
   documentation = file("./pipelines/compute/docs/correct_compute_addresses_if_unattached.md")
-  tags          = merge(local.compute_common_tags, { class = "unused", class = "internal" })
+  tags          = merge(local.compute_common_tags, { class = "unused", folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -218,7 +218,7 @@ pipeline "correct_one_compute_address_if_unattached" {
   title         = "Correct one Compute address if unattached"
   description   = "Runs corrective action on one Compute address that is unattached."
   documentation = file("./pipelines/compute/docs/correct_one_compute_address_if_unattached.md")
-  tags          = merge(local.compute_common_tags, { class = "unused", class = "internal" })
+  tags          = merge(local.compute_common_tags, { class = "unused", folder = "Internal" })
 
   param "address_name" {
     type        = string

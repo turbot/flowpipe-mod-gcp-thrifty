@@ -140,7 +140,7 @@ pipeline "correct_storage_buckets_without_lifecycle_policy" {
   title         = "Correct Storage buckets without lifecycle policies"
   description   = "Executes corrective actions on Storage buckets without lifecycle policies."
   documentation = file("./pipelines/storage/docs/correct_storage_buckets_without_lifecycle_policy.md")
-  tags          = merge(local.storage_common_tags, { class = "unused", class = "internal" })
+  tags          = merge(local.storage_common_tags, { class = "unused", folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -211,7 +211,7 @@ pipeline "correct_one_storage_bucket_without_lifecycle_policy" {
   title         = "Correct one Storage bucket without lifecycle policies"
   description   = "Runs corrective action on a single Storage bucket without lifecycle policies."
   documentation = file("./pipelines/storage/docs/correct_one_storage_bucket_without_lifecycle_policy.md")
-  tags          = merge(local.storage_common_tags, { class = "unused", class = "internal" })
+  tags          = merge(local.storage_common_tags, { class = "unused", folder = "Internal" })
 
   param "conn" {
     type        = connection.gcp

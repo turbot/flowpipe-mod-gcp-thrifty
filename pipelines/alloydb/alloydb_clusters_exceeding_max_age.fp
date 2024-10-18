@@ -150,7 +150,7 @@ pipeline "correct_alloydb_clusters_exceeding_max_age" {
   title         = "Correct AlloyDB clusters exceeding max age"
   description   = "Runs corrective action on a collection of AlloyDB clusters exceeding max age."
   documentation = file("./pipelines/alloydb/docs/correct_alloydb_clusters_exceeding_max_age.md")
-  tags          = merge(local.alloydb_common_tags, { class = "unused", class = "internal" })
+  tags          = merge(local.alloydb_common_tags, { class = "unused", folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -228,7 +228,7 @@ pipeline "correct_one_alloydb_cluster_exceeding_max_age" {
   title         = "Correct one AlloyDB cluster exceeding max age"
   description   = "Runs corrective action on an AlloyDB cluster exceeding max age."
   documentation = file("./pipelines/alloydb/docs/correct_one_alloydb_cluster_exceeding_max_age.md")
-  tags          = merge(local.alloydb_common_tags, { class = "unused", class = "internal" })
+  tags          = merge(local.alloydb_common_tags, { class = "unused", folder = "Internal" })
 
   param "name" {
     type        = string

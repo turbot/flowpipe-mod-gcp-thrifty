@@ -141,7 +141,7 @@ pipeline "correct_kubernetes_clusters_vertical_pod_autoscaling_disabled" {
   title         = "Correct GKE clusters without vertical pod autoscaling"
   description   = "Executes corrective actions on GKE clusters without vertical pod autoscaling enabled."
   documentation = file("./pipelines/kubernetes/docs/correct_kubernetes_clusters_vertical_pod_autoscaling_disabled_pipeline.md")
-  tags          = merge(local.kubernetes_common_tags, { class = "unused", class = "internal" })
+  tags          = merge(local.kubernetes_common_tags, { class = "unused", folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -214,7 +214,7 @@ pipeline "correct_one_kubernetes_cluster_vertical_pod_autoscaling_disabled" {
   title         = "Correct one GKE cluster without vertical pod autoscaling"
   description   = "Runs corrective action on a single GKE cluster without vertical pod autoscaling enabled."
   documentation = file("./pipelines/kubernetes/docs/correct_one_kubernetes_cluster_vertical_pod_autoscaling_disabled_pipeline.md")
-  tags          = merge(local.kubernetes_common_tags, { class = "unused", class = "internal" })
+  tags          = merge(local.kubernetes_common_tags, { class = "unused", folder = "Internal" })
 
   param "conn" {
     type        = connection.gcp

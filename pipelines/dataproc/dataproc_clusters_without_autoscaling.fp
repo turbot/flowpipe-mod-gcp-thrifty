@@ -141,7 +141,7 @@ pipeline "correct_dataproc_clusters_without_autoscaling" {
   title         = "Correct Dataproc clusters without autoscaling"
   description   = "Executes corrective actions on Dataproc clusters without autoscaling enabled."
   documentation = file("./pipelines/dataproc/docs/correct_dataproc_clusters_without_autoscaling.md")
-  tags          = merge(local.dataproc_common_tags, { class = "unused", class = "internal" })
+  tags          = merge(local.dataproc_common_tags, { class = "unused", folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -214,7 +214,7 @@ pipeline "correct_one_dataproc_cluster_without_autoscaling" {
   title         = "Correct one Dataproc clusters without autoscaling"
   description   = "Runs corrective action on a single Dataproc cluster without autoscaling enabled."
   documentation = file("./pipelines/dataproc/docs/correct_one_dataproc_cluster_without_autoscaling.md")
-  tags          = merge(local.dataproc_common_tags, { class = "unused", class = "internal" })
+  tags          = merge(local.dataproc_common_tags, { class = "unused", folder = "Internal" })
 
   param "conn" {
     type        = connection.gcp
