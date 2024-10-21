@@ -97,6 +97,7 @@ pipeline "detect_and_correct_kubernetes_clusters_vertical_pod_autoscaling_disabl
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -163,6 +164,7 @@ pipeline "correct_kubernetes_clusters_vertical_pod_autoscaling_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -251,6 +253,7 @@ pipeline "correct_one_kubernetes_cluster_vertical_pod_autoscaling_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {

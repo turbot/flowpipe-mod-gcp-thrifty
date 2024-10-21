@@ -97,6 +97,7 @@ pipeline "detect_and_correct_vpn_gateways_with_no_tunnels" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -163,6 +164,7 @@ pipeline "correct_vpn_gateways_with_no_tunnels" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -251,6 +253,7 @@ pipeline "correct_one_vpn_gateway_with_no_tunnels" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {

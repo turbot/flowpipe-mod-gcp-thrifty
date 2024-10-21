@@ -97,6 +97,7 @@ pipeline "detect_and_correct_compute_disks_if_unattached" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -163,6 +164,7 @@ pipeline "correct_compute_disks_if_unattached" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -255,6 +257,7 @@ pipeline "correct_one_compute_disk_if_unattached" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {

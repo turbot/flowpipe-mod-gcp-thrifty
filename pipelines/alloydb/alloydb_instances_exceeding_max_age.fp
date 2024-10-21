@@ -107,6 +107,7 @@ pipeline "detect_and_correct_alloydb_instances_exceeding_max_age" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -175,6 +176,7 @@ pipeline "correct_alloydb_instances_exceeding_max_age" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -273,6 +275,7 @@ pipeline "correct_one_alloydb_instance_exceeding_max_age" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {

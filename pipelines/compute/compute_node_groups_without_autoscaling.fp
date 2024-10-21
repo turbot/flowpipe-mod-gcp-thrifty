@@ -106,6 +106,7 @@ pipeline "detect_and_correct_compute_node_groups_without_autoscaling" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -172,6 +173,7 @@ pipeline "correct_compute_node_groups_without_autoscaling" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -270,6 +272,7 @@ pipeline "correct_one_compute_node_group_without_autoscaling" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {

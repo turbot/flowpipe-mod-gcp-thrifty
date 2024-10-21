@@ -118,6 +118,7 @@ pipeline "detect_and_correct_sql_db_instances_with_low_cpu_utilization" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -183,6 +184,7 @@ pipeline "correct_sql_db_instances_with_low_cpu_utilization" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
@@ -269,6 +271,7 @@ pipeline "correct_one_sql_db_instance_with_low_cpu_utilization" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
