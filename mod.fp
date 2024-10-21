@@ -5,6 +5,7 @@ mod "gcp_thrifty" {
   documentation = file("./README.md")
   icon          = "/images/mods/turbot/gcp-thrifty.svg"
   categories    = ["gcp", "cost", "public cloud", "standard", "thrifty"]
+  database      = var.database
 
   opengraph {
     title       = "GCP Thrifty Mod for Flowpipe"
