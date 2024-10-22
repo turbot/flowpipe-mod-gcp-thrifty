@@ -4,7 +4,7 @@ locals {
       concat(name, ' [', zone, '/', project, ']') as title,
       name as instance_name,
       zone,
-      _ctx ->> 'connection_name' as cred,
+      sp_connection_name as conn,
       project
     from
       gcp_compute_instance
@@ -12,6 +12,58 @@ locals {
       status in ('RUNNING', 'PROVISIONING', 'STAGING', 'REPAIRING')
       and machine_type_name not like any (array[${join(",", formatlist("'%s'", var.compute_instances_large_allowed_types))}])
   EOQ
+
+  compute_instances_large_default_action  = ["notify", "skip", "stop_instance", "terminate_instance"]
+  compute_instances_large_enabled_actions = ["skip", "stop_instance", "terminate_instance"]
+}
+
+variable "compute_instances_large_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+  tags = {
+    folder = "Advanced/Compute"
+  }
+}
+
+variable "compute_instances_large_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "The schedule on which to run the trigger if enabled."
+  tags = {
+    folder = "Advanced/Compute"
+  }
+}
+
+variable "compute_instances_large_allowed_types" {
+  type        = list(string)
+  description = "A list of allowed instance types. PostgreSQL wildcards are supported."
+  default     = ["custom-1-1024", "custom-2-2048", "custom-4-4096", "custom-8-8192", "custom-16-16384", "custom-32-32768", "custom-64-65536", "custom-96-98304", "custom-128-131072", "custom-224-229376"]
+  tags = {
+    folder = "Advanced/Compute"
+  }
+}
+
+variable "compute_instances_large_default_action" {
+  type        = string
+  description = "The default action to use for the detected item, used if no input is provided."
+  default     = "notify"
+  enum        = ["notify", "skip", "stop_instance", "terminate_instance"]
+
+  tags = {
+    folder = "Advanced/Compute"
+  }
+}
+
+variable "compute_instances_large_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions to provide to approvers for selection."
+  default     = ["skip", "stop_instance", "terminate_instance"]
+  enum        = ["skip", "stop_instance", "terminate_instance"]
+
+  tags = {
+    folder = "Advanced/Compute"
+  }
 }
 
 trigger "query" "detect_and_correct_compute_instances_large" {
@@ -37,16 +89,16 @@ pipeline "detect_and_correct_compute_instances_large" {
   title         = "Detect & correct Compute engine instances large"
   description   = "Detects large Compute engine instances and runs your chosen action."
   documentation = file("./pipelines/compute/docs/detect_and_correct_compute_instances_large.md")
-  tags          = merge(local.compute_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.compute_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -55,10 +107,11 @@ pipeline "detect_and_correct_compute_instances_large" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -67,12 +120,14 @@ pipeline "detect_and_correct_compute_instances_large" {
     type        = string
     description = local.description_default_action
     default     = var.compute_instances_large_default_action
+    enum        = local.compute_instances_large_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.compute_instances_large_enabled_actions
+    enum        = local.compute_instances_large_enabled_actions
   }
 
   step "query" "detect" {
@@ -97,12 +152,12 @@ pipeline "correct_compute_instances_large" {
   title         = "Correct Compute engine instances large"
   description   = "Executes corrective actions on large Compute engine instances."
   documentation = file("./pipelines/compute/docs/correct_compute_instances_large.md")
-  tags          = merge(local.compute_common_tags, { class = "unused" })
+  tags          = merge(local.compute_common_tags, { class = "unused", folder = "Internal" })
 
   param "items" {
     type = list(object({
       title         = string
-      cred          = string
+      conn          = string
       instance_name = string
       zone          = string
       project       = string
@@ -110,7 +165,7 @@ pipeline "correct_compute_instances_large" {
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -119,10 +174,11 @@ pipeline "correct_compute_instances_large" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -131,17 +187,19 @@ pipeline "correct_compute_instances_large" {
     type        = string
     description = local.description_default_action
     default     = var.compute_instances_large_default_action
+    enum        = local.compute_instances_large_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.compute_instances_large_enabled_actions
+    enum        = local.compute_instances_large_enabled_actions
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
-    notifier = notifier[param.notifier]
+    if       = var.notification_level == local.level_info
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} large Compute engine instance."
   }
 
@@ -156,7 +214,7 @@ pipeline "correct_compute_instances_large" {
     args = {
       instance_name      = each.value.instance_name
       zone               = each.value.zone
-      cred               = each.value.cred
+      conn               = connection.gcp[each.value.conn]
       title              = each.value.title
       project            = each.value.project
       notifier           = param.notifier
@@ -172,11 +230,11 @@ pipeline "correct_one_compute_instance_large" {
   title         = "Correct one Compute engine instance large"
   description   = "Runs corrective action on a single large Compute engine instance."
   documentation = file("./pipelines/compute/docs/correct_one_compute_instance_large.md")
-  tags          = merge(local.compute_common_tags, { class = "unused" })
+  tags          = merge(local.compute_common_tags, { class = "unused", folder = "Internal" })
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.gcp
+    description = local.description_connection
   }
 
   param "title" {
@@ -200,7 +258,7 @@ pipeline "correct_one_compute_instance_large" {
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -209,10 +267,11 @@ pipeline "correct_one_compute_instance_large" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -221,12 +280,14 @@ pipeline "correct_one_compute_instance_large" {
     type        = string
     description = local.description_default_action
     default     = var.compute_instances_large_default_action
+    enum        = local.compute_instances_large_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.compute_instances_large_enabled_actions
+    enum        = local.compute_instances_large_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -243,7 +304,7 @@ pipeline "correct_one_compute_instance_large" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -256,12 +317,12 @@ pipeline "correct_one_compute_instance_large" {
           label        = "Stop Compute Instance"
           value        = "stop_instance"
           style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_stop_compute_instance
+          pipeline_ref = gcp.pipeline.stop_compute_instance
           pipeline_args = {
             instance_name = param.instance_name
             zone          = param.zone
             project_id    = param.project
-            cred          = param.cred
+            conn          = param.conn
           }
           success_msg = "Stopped Compute engine instance ${param.title}."
           error_msg   = "Error stopping Compute engine instance ${param.title}."
@@ -270,12 +331,12 @@ pipeline "correct_one_compute_instance_large" {
           label        = "Terminate Compute Instance"
           value        = "terminate_instance"
           style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_terminate_compute_instance
+          pipeline_ref = gcp.pipeline.delete_compute_instance
           pipeline_args = {
             instance_name = param.instance_name
             zone          = param.zone
             project_id    = param.project
-            cred          = param.cred
+            conn          = param.conn
           }
           success_msg = "Deleted Compute engine instance ${param.title}."
           error_msg   = "Error deleting Compute engine instance ${param.title}."
@@ -283,34 +344,4 @@ pipeline "correct_one_compute_instance_large" {
       }
     }
   }
-}
-
-variable "compute_instances_large_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "compute_instances_large_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "The schedule on which to run the trigger if enabled."
-}
-
-variable "compute_instances_large_allowed_types" {
-  type        = list(string)
-  description = "A list of allowed instance types. PostgreSQL wildcards are supported."
-  default     = ["custom-1-1024", "custom-2-2048", "custom-4-4096", "custom-8-8192", "custom-16-16384", "custom-32-32768", "custom-64-65536", "custom-96-98304", "custom-128-131072", "custom-224-229376"]
-}
-
-variable "compute_instances_large_default_action" {
-  type        = string
-  description = "The default action to use for the detected item, used if no input is provided."
-  default     = "notify"
-}
-
-variable "compute_instances_large_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "stop_instance", "terminate_instance"]
 }

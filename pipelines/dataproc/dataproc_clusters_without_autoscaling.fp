@@ -3,7 +3,7 @@ locals {
   select
     concat(cluster_name, ' [', location, '/', project, ']') as title,
     cluster_name as name,
-    _ctx ->> 'connection_name' as cred,
+    sp_connection_name as conn,
     location,
     project
   from
@@ -11,6 +11,49 @@ locals {
   where
     config -> 'autoscalingConfig' -> 'policyUri' is null
   EOQ
+
+  dataproc_clusters_without_autoscaling_default_action  = ["notify", "skip", "delete_dataproc_cluster"]
+  dataproc_clusters_without_autoscaling_enabled_actions = ["skip", "delete_dataproc_cluster"]
+}
+
+variable "dataproc_clusters_without_autoscaling_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+  tags = {
+    folder = "Advanced/Dataproc"
+  }
+}
+
+variable "dataproc_clusters_without_autoscaling_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "The schedule on which to run the trigger if enabled."
+  tags = {
+    folder = "Advanced/Dataproc"
+  }
+}
+
+variable "dataproc_clusters_without_autoscaling_default_action" {
+  type        = string
+  description = "The default action to use for the detected item, used if no input is provided."
+  default     = "notify"
+  enum        = ["notify", "skip", "delete_dataproc_cluster"]
+
+  tags = {
+    folder = "Advanced/Dataproc"
+  }
+}
+
+variable "dataproc_clusters_without_autoscaling_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions to provide to approvers for selection."
+  default     = ["skip", "delete_dataproc_cluster"]
+  enum        = ["skip", "delete_dataproc_cluster"]
+
+  tags = {
+    folder = "Advanced/Dataproc"
+  }
 }
 
 trigger "query" "detect_and_correct_dataproc_clusters_without_autoscaling" {
@@ -36,15 +79,16 @@ pipeline "detect_and_correct_dataproc_clusters_without_autoscaling" {
   title         = "Detect & correct Dataproc clusters without autoscaling"
   description   = "Detects Dataproc clusters without autoscaling enabled and runs your chosen action."
   documentation = file("./pipelines/dataproc/docs/detect_and_correct_dataproc_clusters_without_autoscaling.md")
-  tags          = merge(local.dataproc_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.dataproc_common_tags, { class = "unused", recommended = "true" })
+
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -53,10 +97,11 @@ pipeline "detect_and_correct_dataproc_clusters_without_autoscaling" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -65,12 +110,14 @@ pipeline "detect_and_correct_dataproc_clusters_without_autoscaling" {
     type        = string
     description = local.description_default_action
     default     = var.dataproc_clusters_without_autoscaling_default_action
+    enum        = local.dataproc_clusters_without_autoscaling_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.dataproc_clusters_without_autoscaling_enabled_actions
+    enum        = local.dataproc_clusters_without_autoscaling_enabled_actions
   }
 
   step "query" "detect" {
@@ -95,12 +142,12 @@ pipeline "correct_dataproc_clusters_without_autoscaling" {
   title         = "Correct Dataproc clusters without autoscaling"
   description   = "Executes corrective actions on Dataproc clusters without autoscaling enabled."
   documentation = file("./pipelines/dataproc/docs/correct_dataproc_clusters_without_autoscaling.md")
-  tags          = merge(local.dataproc_common_tags, { class = "unused" })
+  tags          = merge(local.dataproc_common_tags, { class = "unused", folder = "Internal" })
 
   param "items" {
     type = list(object({
       title    = string
-      cred     = string
+      conn     = string
       name     = string
       location = string
       project  = string
@@ -108,7 +155,7 @@ pipeline "correct_dataproc_clusters_without_autoscaling" {
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -117,10 +164,11 @@ pipeline "correct_dataproc_clusters_without_autoscaling" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -129,17 +177,19 @@ pipeline "correct_dataproc_clusters_without_autoscaling" {
     type        = string
     description = local.description_default_action
     default     = var.dataproc_clusters_without_autoscaling_default_action
+    enum        = local.dataproc_clusters_without_autoscaling_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.dataproc_clusters_without_autoscaling_enabled_actions
+    enum        = local.dataproc_clusters_without_autoscaling_enabled_actions
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
-    notifier = notifier[param.notifier]
+    if       = var.notification_level == local.level_info
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} Dataproc clusters without autoscaling."
   }
 
@@ -150,7 +200,7 @@ pipeline "correct_dataproc_clusters_without_autoscaling" {
     args = {
       title              = each.value.title
       name               = each.value.name
-      cred               = each.value.cred
+      conn               = connection.gcp[each.value.conn]
       location           = each.value.location
       project            = each.value.project
       notifier           = param.notifier
@@ -166,11 +216,11 @@ pipeline "correct_one_dataproc_cluster_without_autoscaling" {
   title         = "Correct one Dataproc clusters without autoscaling"
   description   = "Runs corrective action on a single Dataproc cluster without autoscaling enabled."
   documentation = file("./pipelines/dataproc/docs/correct_one_dataproc_cluster_without_autoscaling.md")
-  tags          = merge(local.dataproc_common_tags, { class = "unused" })
+  tags          = merge(local.dataproc_common_tags, { class = "unused", folder = "Internal" })
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.gcp
+    description = local.description_connection
   }
 
   param "title" {
@@ -194,7 +244,7 @@ pipeline "correct_one_dataproc_cluster_without_autoscaling" {
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -203,10 +253,11 @@ pipeline "correct_one_dataproc_cluster_without_autoscaling" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -215,12 +266,14 @@ pipeline "correct_one_dataproc_cluster_without_autoscaling" {
     type        = string
     description = local.description_default_action
     default     = var.dataproc_clusters_without_autoscaling_default_action
+    enum        = local.dataproc_clusters_without_autoscaling_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.dataproc_clusters_without_autoscaling_enabled_actions
+    enum        = local.dataproc_clusters_without_autoscaling_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -237,7 +290,7 @@ pipeline "correct_one_dataproc_cluster_without_autoscaling" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -250,10 +303,10 @@ pipeline "correct_one_dataproc_cluster_without_autoscaling" {
           label        = "Delete Dataproc Cluster"
           value        = "delete_dataproc_cluster"
           style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_delete_dataproc_cluster
+          pipeline_ref = gcp.pipeline.delete_dataproc_cluster
           pipeline_args = {
             cluster_name = param.name
-            cred         = param.cred
+            conn         = param.conn
             project_id   = param.project
             region       = param.location
           }
@@ -263,28 +316,4 @@ pipeline "correct_one_dataproc_cluster_without_autoscaling" {
       }
     }
   }
-}
-
-variable "dataproc_clusters_without_autoscaling_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "dataproc_clusters_without_autoscaling_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "The schedule on which to run the trigger if enabled."
-}
-
-variable "dataproc_clusters_without_autoscaling_default_action" {
-  type        = string
-  description = "The default action to use for the detected item, used if no input is provided."
-  default     = "notify"
-}
-
-variable "dataproc_clusters_without_autoscaling_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "delete_dataproc_cluster"]
 }
