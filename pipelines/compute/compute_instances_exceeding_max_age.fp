@@ -4,7 +4,7 @@ locals {
       concat(name, ' [', zone, '/', project, ']') as title,
       name as instance_name,
       zone,
-      _ctx ->> 'connection_name' as cred,
+      sp_connection_name as conn,
       project
     from
       gcp_compute_instance
@@ -12,6 +12,58 @@ locals {
       status in ('PROVISIONING', 'STAGING', 'RUNNING', 'REPAIRING')
       and date_part('day', now() - creation_timestamp) > ${var.compute_instances_exceeding_max_age_days};
   EOQ
+
+  compute_instances_exceeding_max_age_enabled_actions = ["skip", "stop_instance", "terminate_instance"]
+  compute_instances_exceeding_max_age_default_action  = ["notify", "skip", "stop_instance", "terminate_instance"]
+}
+
+variable "compute_instances_exceeding_max_age_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+  tags = {
+    folder = "Advanced/Compute"
+  }
+}
+
+variable "compute_instances_exceeding_max_age_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "The schedule on which to run the trigger if enabled."
+  tags = {
+    folder = "Advanced/Compute"
+  }
+}
+
+variable "compute_instances_exceeding_max_age_days" {
+  type        = number
+  description = "The maximum age (in days) for an instance to be considered long-running."
+  default     = 30
+  tags = {
+    folder = "Advanced/Compute"
+  }
+}
+
+variable "compute_instances_exceeding_max_age_default_action" {
+  type        = string
+  description = "The default action to use for the detected item, used if no input is provided."
+  default     = "notify"
+  enum        = ["notify", "skip", "stop_instance", "terminate_instance"]
+
+  tags = {
+    folder = "Advanced/Compute"
+  }
+}
+
+variable "compute_instances_exceeding_max_age_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions to provide to approvers for selection."
+  default     = ["skip", "stop_instance", "terminate_instance"]
+  enum        = ["skip", "stop_instance", "terminate_instance"]
+
+  tags = {
+    folder = "Advanced/Compute"
+  }
 }
 
 trigger "query" "detect_and_correct_compute_instances_exceeding_max_age" {
@@ -37,16 +89,16 @@ pipeline "detect_and_correct_compute_instances_exceeding_max_age" {
   title         = "Detect & correct Compute engine instances exceeding max age"
   description   = "Detects Compute engine instances exceeding max age and runs your chosen action."
   documentation = file("./pipelines/compute/docs/detect_and_correct_compute_instances_exceeding_max_age.md")
-  tags          = merge(local.compute_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.compute_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -55,10 +107,11 @@ pipeline "detect_and_correct_compute_instances_exceeding_max_age" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -67,12 +120,14 @@ pipeline "detect_and_correct_compute_instances_exceeding_max_age" {
     type        = string
     description = local.description_default_action
     default     = var.compute_instances_exceeding_max_age_default_action
+    enum        = local.compute_instances_exceeding_max_age_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.compute_instances_exceeding_max_age_enabled_actions
+    enum        = local.compute_instances_exceeding_max_age_enabled_actions
   }
 
   step "query" "detect" {
@@ -97,12 +152,12 @@ pipeline "correct_compute_instances_exceeding_max_age" {
   title         = "Correct Compute engine instances exceeding max age"
   description   = "Executes corrective actions on Compute engine instances exceeding max age."
   documentation = file("./pipelines/compute/docs/correct_compute_instances_exceeding_max_age.md")
-  tags          = merge(local.compute_common_tags, { class = "unused" })
+  tags          = merge(local.compute_common_tags, { class = "unused", folder = "Internal" })
 
   param "items" {
     type = list(object({
       title         = string
-      cred          = string
+      conn          = string
       instance_name = string
       zone          = string
       project       = string
@@ -110,7 +165,7 @@ pipeline "correct_compute_instances_exceeding_max_age" {
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -119,10 +174,11 @@ pipeline "correct_compute_instances_exceeding_max_age" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -131,17 +187,19 @@ pipeline "correct_compute_instances_exceeding_max_age" {
     type        = string
     description = local.description_default_action
     default     = var.compute_instances_exceeding_max_age_default_action
+    enum        = local.compute_instances_exceeding_max_age_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.compute_instances_exceeding_max_age_enabled_actions
+    enum        = local.compute_instances_exceeding_max_age_enabled_actions
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
-    notifier = notifier[param.notifier]
+    if       = var.notification_level == local.level_info
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} Compute engine instances exceeding max age."
   }
 
@@ -157,7 +215,7 @@ pipeline "correct_compute_instances_exceeding_max_age" {
       instance_name      = each.value.instance_name
       zone               = each.value.zone
       project            = each.value.project
-      cred               = each.value.cred
+      conn               = connection.gcp[each.value.conn]
       title              = each.value.title
       notifier           = param.notifier
       notification_level = param.notification_level
@@ -172,11 +230,11 @@ pipeline "correct_one_compute_instance_exceeding_max_age" {
   title         = "Correct one Compute engine instance exceeding max age"
   description   = "Runs corrective action on a single Compute engine instance exceeding max age."
   documentation = file("./pipelines/compute/docs/correct_one_compute_instance_exceeding_max_age.md")
-  tags          = merge(local.compute_common_tags, { class = "unused" })
+  tags          = merge(local.compute_common_tags, { class = "unused", folder = "Internal" })
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.gcp
+    description = local.description_connection
   }
 
   param "title" {
@@ -200,7 +258,7 @@ pipeline "correct_one_compute_instance_exceeding_max_age" {
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -209,10 +267,11 @@ pipeline "correct_one_compute_instance_exceeding_max_age" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -221,12 +280,14 @@ pipeline "correct_one_compute_instance_exceeding_max_age" {
     type        = string
     description = local.description_default_action
     default     = var.compute_instances_exceeding_max_age_default_action
+    enum        = local.compute_instances_exceeding_max_age_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.compute_instances_exceeding_max_age_enabled_actions
+    enum        = local.compute_instances_exceeding_max_age_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -243,7 +304,7 @@ pipeline "correct_one_compute_instance_exceeding_max_age" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -256,12 +317,12 @@ pipeline "correct_one_compute_instance_exceeding_max_age" {
           label        = "Stop Instance"
           value        = "stop_instance"
           style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_stop_compute_instance
+          pipeline_ref = gcp.pipeline.stop_compute_instance
           pipeline_args = {
             instance_name = param.instance_name
             zone          = param.zone
             project_id    = param.project
-            cred          = param.cred
+            conn          = param.conn
           }
           success_msg = "Stopped Compute engine instance ${param.title}."
           error_msg   = "Error stopping Compute engine instance ${param.title}."
@@ -270,12 +331,12 @@ pipeline "correct_one_compute_instance_exceeding_max_age" {
           label        = "Terminate Instance"
           value        = "terminate_instance"
           style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_terminate_compute_instance
+          pipeline_ref = gcp.pipeline.delete_compute_instance
           pipeline_args = {
             instance_name = param.instance_name
             zone          = param.zone
             project_id    = param.project
-            cred          = param.cred
+            conn          = param.conn
           }
           success_msg = "Deleted Compute engine instance ${param.title}."
           error_msg   = "Error deleting Compute engine instance ${param.title}."
@@ -283,34 +344,4 @@ pipeline "correct_one_compute_instance_exceeding_max_age" {
       }
     }
   }
-}
-
-variable "compute_instances_exceeding_max_age_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "compute_instances_exceeding_max_age_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "The schedule on which to run the trigger if enabled."
-}
-
-variable "compute_instances_exceeding_max_age_days" {
-  type        = number
-  description = "The maximum age (in days) for an instance to be considered long-running."
-  default     = 30
-}
-
-variable "compute_instances_exceeding_max_age_default_action" {
-  type        = string
-  description = "The default action to use for the detected item, used if no input is provided."
-  default     = "notify"
-}
-
-variable "compute_instances_exceeding_max_age_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "stop_instance", "terminate_instance"]
 }

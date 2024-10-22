@@ -3,7 +3,7 @@ locals {
   select
     concat(name, ' [', location, '/', project, ']') as title,
     name,
-    _ctx ->> 'connection_name' as cred,
+    sp_connection_name as conn,
     location,
     project
   from
@@ -11,6 +11,58 @@ locals {
   where
     date_part('day', now()-create_time) > ${var.kubernetes_clusters_exceeding_max_age_days};
   EOQ
+
+  kubernetes_clusters_exceeding_max_age_default_action  = ["notify", "skip", "delete_kubernetes_cluster"]
+  kubernetes_clusters_exceeding_max_age_enabled_actions = ["skip", "delete_kubernetes_cluster"]
+}
+
+variable "kubernetes_clusters_exceeding_max_age_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+  tags = {
+    folder = "Advanced/Kubernetes"
+  }
+}
+
+variable "kubernetes_clusters_exceeding_max_age_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "The schedule on which to run the trigger if enabled."
+  tags = {
+    folder = "Advanced/Kubernetes"
+  }
+}
+
+variable "kubernetes_clusters_exceeding_max_age_default_action" {
+  type        = string
+  description = "The default action to use for the detected item, used if no input is provided."
+  default     = "notify"
+  enum        = ["notify", "skip", "delete_kubernetes_cluster"]
+
+  tags = {
+    folder = "Advanced/Kubernetes"
+  }
+}
+
+variable "kubernetes_clusters_exceeding_max_age_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions to provide to approvers for selection."
+  default     = ["skip", "delete_kubernetes_cluster"]
+  enum        = ["skip", "delete_kubernetes_cluster"]
+
+  tags = {
+    folder = "Advanced/Kubernetes"
+  }
+}
+
+variable "kubernetes_clusters_exceeding_max_age_days" {
+  type        = number
+  description = "The maximum number of days Kubernetes clusters can be retained."
+  default     = 15
+  tags = {
+    folder = "Advanced/Kubernetes"
+  }
 }
 
 trigger "query" "detect_and_correct_kubernetes_clusters_exceeding_max_age" {
@@ -36,16 +88,16 @@ pipeline "detect_and_correct_kubernetes_clusters_exceeding_max_age" {
   title         = "Detect & correct Kubernetes clusters exceeding max age"
   description   = "Detects Kubernetes clusters exceeding max age and runs your chosen action."
   documentation = file("./pipelines/kubernetes/docs/detect_and_correct_kubernetes_clusters_exceeding_max_age.md")
-  tags          = merge(local.kubernetes_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.kubernetes_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -54,10 +106,11 @@ pipeline "detect_and_correct_kubernetes_clusters_exceeding_max_age" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -66,12 +119,14 @@ pipeline "detect_and_correct_kubernetes_clusters_exceeding_max_age" {
     type        = string
     description = local.description_default_action
     default     = var.kubernetes_clusters_exceeding_max_age_default_action
+    enum        = local.kubernetes_clusters_exceeding_max_age_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.kubernetes_clusters_exceeding_max_age_enabled_actions
+    enum        = local.kubernetes_clusters_exceeding_max_age_enabled_actions
   }
 
   step "query" "detect" {
@@ -96,7 +151,7 @@ pipeline "correct_kubernetes_clusters_exceeding_max_age" {
   title         = "Correct Kubernetes clusters exceeding max age"
   description   = "Runs corrective action on a collection of Kubernetes clusters exceeding max age."
   documentation = file("./pipelines/kubernetes/docs/correct_kubernetes_clusters_exceeding_max_age.md")
-  tags          = merge(local.kubernetes_common_tags, { class = "unused" })
+  tags          = merge(local.kubernetes_common_tags, { class = "unused", folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -104,13 +159,13 @@ pipeline "correct_kubernetes_clusters_exceeding_max_age" {
       name     = string
       location = string
       project  = string
-      cred     = string
+      conn     = string
     }))
     description = local.description_items
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -119,10 +174,11 @@ pipeline "correct_kubernetes_clusters_exceeding_max_age" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -131,17 +187,19 @@ pipeline "correct_kubernetes_clusters_exceeding_max_age" {
     type        = string
     description = local.description_default_action
     default     = var.kubernetes_clusters_exceeding_max_age_default_action
+    enum        = local.kubernetes_clusters_exceeding_max_age_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.kubernetes_clusters_exceeding_max_age_enabled_actions
+    enum        = local.kubernetes_clusters_exceeding_max_age_enabled_actions
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
-    notifier = notifier[param.notifier]
+    if       = var.notification_level == local.level_info
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} Kubernetes clusters exceeding maximum age."
   }
 
@@ -157,7 +215,7 @@ pipeline "correct_kubernetes_clusters_exceeding_max_age" {
       name               = each.value.name
       project            = each.value.project
       location           = each.value.location
-      cred               = each.value.cred
+      conn               = connection.gcp[each.value.conn]
       title              = each.value.title
       notifier           = param.notifier
       notification_level = param.notification_level
@@ -172,7 +230,7 @@ pipeline "correct_one_kubernetes_cluster_exceeding_max_age" {
   title         = "Correct one Kubernetes cluster exceeding max age"
   description   = "Runs corrective action on a Kubernetes cluster exceeding max age."
   documentation = file("./pipelines/kubernetes/docs/correct_one_kubernetes_cluster_exceeding_max_age.md")
-  tags          = merge(local.kubernetes_common_tags, { class = "unused" })
+  tags          = merge(local.kubernetes_common_tags, { class = "unused", folder = "Internal" })
 
   param "name" {
     type        = string
@@ -189,9 +247,9 @@ pipeline "correct_one_kubernetes_cluster_exceeding_max_age" {
     description = local.description_title
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.gcp
+    description = local.description_connection
   }
 
   param "location" {
@@ -200,7 +258,7 @@ pipeline "correct_one_kubernetes_cluster_exceeding_max_age" {
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -209,10 +267,11 @@ pipeline "correct_one_kubernetes_cluster_exceeding_max_age" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -221,12 +280,14 @@ pipeline "correct_one_kubernetes_cluster_exceeding_max_age" {
     type        = string
     description = local.description_default_action
     default     = var.kubernetes_clusters_exceeding_max_age_default_action
+    enum        = local.kubernetes_clusters_exceeding_max_age_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.kubernetes_clusters_exceeding_max_age_enabled_actions
+    enum        = local.kubernetes_clusters_exceeding_max_age_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -243,7 +304,7 @@ pipeline "correct_one_kubernetes_cluster_exceeding_max_age" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -256,10 +317,10 @@ pipeline "correct_one_kubernetes_cluster_exceeding_max_age" {
           label        = "Delete Kubernetes Cluster"
           value        = "delete_kubernetes_cluster"
           style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_delete_kubernetes_cluster
+          pipeline_ref = gcp.pipeline.delete_kubernetes_cluster
           pipeline_args = {
             cluster_name = param.name
-            cred         = param.cred
+            conn         = param.conn
             project_id   = param.project
             zone         = param.location
           }
@@ -269,34 +330,4 @@ pipeline "correct_one_kubernetes_cluster_exceeding_max_age" {
       }
     }
   }
-}
-
-variable "kubernetes_clusters_exceeding_max_age_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "kubernetes_clusters_exceeding_max_age_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "The schedule on which to run the trigger if enabled."
-}
-
-variable "kubernetes_clusters_exceeding_max_age_default_action" {
-  type        = string
-  description = "The default action to use for the detected item, used if no input is provided."
-  default     = "notify"
-}
-
-variable "kubernetes_clusters_exceeding_max_age_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "delete_kubernetes_cluster"]
-}
-
-variable "kubernetes_clusters_exceeding_max_age_days" {
-  type        = number
-  description = "The maximum number of days Kubernetes clusters can be retained."
-  default     = 15
 }

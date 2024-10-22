@@ -16,13 +16,56 @@ locals {
       concat(i.name, ' [', i.location, '/', i.project, ']') as title,
       i.name as instance_name,
       i.project as project,
-      i._ctx ->> 'connection_name' as cred
+      i.sp_connection_name as conn
     from
       gcp_sql_database_instance as i
       left join sql_db_instance_usage as u on i.project || ':' || i.name = u.instance_id
     where
       u.avg_max = 0;
   EOQ
+
+  sql_db_instances_with_low_connection_count_default_action  = ["notify", "skip", "delete_instance"]
+  sql_db_instances_with_low_connection_count_enabled_actions = ["skip", "delete_instance"]
+}
+
+variable "sql_db_instances_with_low_connection_count_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+  tags = {
+    folder = "Advanced/SQL"
+  }
+}
+
+variable "sql_db_instances_with_low_connection_count_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "The schedule on which to run the trigger if enabled."
+  tags = {
+    folder = "Advanced/SQL"
+  }
+}
+
+variable "sql_db_instances_with_low_connection_count_default_action" {
+  type        = string
+  description = "The default action to use for the detected item, used if no input is provided."
+  default     = "notify"
+  enum        = ["notify", "skip", "delete_instance"]
+
+  tags = {
+    folder = "Advanced/SQL"
+  }
+}
+
+variable "sql_db_instances_with_low_connection_count_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions to provide to approvers for selection."
+  default     = ["skip", "delete_instance"]
+  enum        = ["skip", "delete_instance"]
+
+  tags = {
+    folder = "Advanced/SQL"
+  }
 }
 
 trigger "query" "detect_and_correct_sql_db_instances_with_low_connection_count" {
@@ -48,16 +91,16 @@ pipeline "detect_and_correct_sql_db_instances_with_low_connection_count" {
   title         = "Detect & correct SQL DB instances with low connection count"
   description   = "Detects SQL DB instances with low connection count and runs your chosen action."
   documentation = file("./pipelines/sql/docs/detect_and_correct_sql_db_instances_with_low_connection_count.md")
-  tags          = merge(local.sql_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.sql_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -66,10 +109,11 @@ pipeline "detect_and_correct_sql_db_instances_with_low_connection_count" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -78,12 +122,14 @@ pipeline "detect_and_correct_sql_db_instances_with_low_connection_count" {
     type        = string
     description = local.description_default_action
     default     = var.sql_db_instances_with_low_connection_count_default_action
+    enum        = local.sql_db_instances_with_low_connection_count_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.sql_db_instances_with_low_connection_count_enabled_actions
+    enum        = local.sql_db_instances_with_low_connection_count_enabled_actions
   }
 
   step "query" "detect" {
@@ -108,19 +154,19 @@ pipeline "correct_sql_db_instances_with_low_connection_count" {
   title         = "Correct SQL DB instances with low connection count"
   description   = "Runs corrective action on a collection of SQL DB instances with low connection count."
   documentation = file("./pipelines/sql/docs/correct_sql_db_instances_with_low_connection_count.md")
-  tags          = merge(local.sql_common_tags, { class = "unused" })
+  tags          = merge(local.sql_common_tags, { class = "unused", folder = "Internal" })
 
   param "items" {
     type = list(object({
       instance_name = string
       title         = string
-      cred          = string
+      conn          = string
       project       = string
     }))
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -129,10 +175,11 @@ pipeline "correct_sql_db_instances_with_low_connection_count" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -141,17 +188,19 @@ pipeline "correct_sql_db_instances_with_low_connection_count" {
     type        = string
     description = local.description_default_action
     default     = var.sql_db_instances_with_low_connection_count_default_action
+    enum        = local.sql_db_instances_with_low_connection_count_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.sql_db_instances_with_low_connection_count_enabled_actions
+    enum        = local.sql_db_instances_with_low_connection_count_enabled_actions
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
-    notifier = notifier[param.notifier]
+    if       = var.notification_level == local.level_info
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} SQL DB instances with low connection count."
   }
 
@@ -166,7 +215,7 @@ pipeline "correct_sql_db_instances_with_low_connection_count" {
     args = {
       instance_name      = each.value.instance_name
       project            = each.value.project
-      cred               = each.value.cred
+      conn               = connection.gcp[each.value.conn]
       title              = each.value.title
       notifier           = param.notifier
       notification_level = param.notification_level
@@ -181,7 +230,7 @@ pipeline "correct_one_sql_db_instance_with_low_connection_count" {
   title         = "Correct one SQL DB instance with low connection count"
   description   = "Runs corrective action on a SQL DB instance with low connection count."
   documentation = file("./pipelines/sql/docs/correct_one_sql_db_instance_with_low_connection_count.md")
-  tags          = merge(local.sql_common_tags, { class = "unused" })
+  tags          = merge(local.sql_common_tags, { class = "unused", folder = "Internal" })
 
   param "title" {
     type        = string
@@ -198,13 +247,13 @@ pipeline "correct_one_sql_db_instance_with_low_connection_count" {
     description = local.description_project
   }
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.gcp
+    description = local.description_connection
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -213,10 +262,11 @@ pipeline "correct_one_sql_db_instance_with_low_connection_count" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -225,12 +275,14 @@ pipeline "correct_one_sql_db_instance_with_low_connection_count" {
     type        = string
     description = local.description_default_action
     default     = var.sql_db_instances_with_low_connection_count_default_action
+    enum        = local.sql_db_instances_with_low_connection_count_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.sql_db_instances_with_low_connection_count_enabled_actions
+    enum        = local.sql_db_instances_with_low_connection_count_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -247,7 +299,7 @@ pipeline "correct_one_sql_db_instance_with_low_connection_count" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -260,9 +312,9 @@ pipeline "correct_one_sql_db_instance_with_low_connection_count" {
           label        = "Delete Instance"
           value        = "delete_instance"
           style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_delete_sql_instance
+          pipeline_ref = gcp.pipeline.delete_sql_instance
           pipeline_args = {
-            cred          = param.cred
+            conn          = param.conn
             instance_name = param.instance_name
             project_id    = param.project
           }
@@ -272,28 +324,4 @@ pipeline "correct_one_sql_db_instance_with_low_connection_count" {
       }
     }
   }
-}
-
-variable "sql_db_instances_with_low_connection_count_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "sql_db_instances_with_low_connection_count_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "The schedule on which to run the trigger if enabled."
-}
-
-variable "sql_db_instances_with_low_connection_count_default_action" {
-  type        = string
-  description = "The default action to use for the detected item, used if no input is provided."
-  default     = "notify"
-}
-
-variable "sql_db_instances_with_low_connection_count_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "delete_instance"]
 }

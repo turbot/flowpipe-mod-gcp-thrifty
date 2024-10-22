@@ -4,13 +4,56 @@ locals {
       concat(name, ' [', location, '/', project, ']') as title,
       name,
       location,
-      _ctx ->> 'connection_name' as cred,
+      sp_connection_name as conn,
       project
     from
       gcp_kubernetes_cluster
     where
       not (vertical_pod_autoscaling -> 'enabled')::bool
   EOQ
+
+  kubernetes_clusters_vertical_pod_autoscaling_disabled_enabled_actions = ["skip", "delete_kubernetes_cluster"]
+  kubernetes_clusters_vertical_pod_autoscaling_disabled_default_action  = ["notify", "skip", "delete_kubernetes_cluster"]
+}
+
+variable "kubernetes_clusters_vertical_pod_autoscaling_disabled_trigger_enabled" {
+  type        = bool
+  default     = false
+  description = "If true, the trigger is enabled."
+  tags = {
+    folder = "Advanced/Kubernetes"
+  }
+}
+
+variable "kubernetes_clusters_vertical_pod_autoscaling_disabled_trigger_schedule" {
+  type        = string
+  default     = "15m"
+  description = "The schedule on which to run the trigger if enabled."
+  tags = {
+    folder = "Advanced/Kubernetes"
+  }
+}
+
+variable "kubernetes_clusters_vertical_pod_autoscaling_disabled_default_action" {
+  type        = string
+  description = "The default action to use for the detected item, used if no input is provided."
+  default     = "notify"
+  enum        = ["notify", "skip", "delete_kubernetes_cluster"]
+
+  tags = {
+    folder = "Advanced/Kubernetes"
+  }
+}
+
+variable "kubernetes_clusters_vertical_pod_autoscaling_disabled_enabled_actions" {
+  type        = list(string)
+  description = "The list of enabled actions to provide to approvers for selection."
+  default     = ["skip", "delete_kubernetes_cluster"]
+  enum        = ["skip", "delete_kubernetes_cluster"]
+
+  tags = {
+    folder = "Advanced/Kubernetes"
+  }
 }
 
 trigger "query" "detect_and_correct_kubernetes_clusters_vertical_pod_autoscaling_disabled" {
@@ -36,16 +79,16 @@ pipeline "detect_and_correct_kubernetes_clusters_vertical_pod_autoscaling_disabl
   title         = "Detect & correct GKE clusters without vertical pod autoscaling"
   description   = "Detects GKE clusters without vertical pod autoscaling enabled and runs your chosen action."
   documentation = file("./pipelines/kubernetes/docs/detect_and_correct_kubernetes_clusters_vertical_pod_autoscaling_disabled.md")
-  tags          = merge(local.kubernetes_common_tags, { class = "unused", type = "featured" })
+  tags          = merge(local.kubernetes_common_tags, { class = "unused", recommended = "true" })
 
   param "database" {
-    type        = string
+    type        = connection.steampipe
     description = local.description_database
     default     = var.database
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -54,10 +97,11 @@ pipeline "detect_and_correct_kubernetes_clusters_vertical_pod_autoscaling_disabl
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -66,12 +110,14 @@ pipeline "detect_and_correct_kubernetes_clusters_vertical_pod_autoscaling_disabl
     type        = string
     description = local.description_default_action
     default     = var.kubernetes_clusters_vertical_pod_autoscaling_disabled_default_action
+    enum        = local.kubernetes_clusters_vertical_pod_autoscaling_disabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.kubernetes_clusters_vertical_pod_autoscaling_disabled_enabled_actions
+    enum        = local.kubernetes_clusters_vertical_pod_autoscaling_disabled_enabled_actions
   }
 
   step "query" "detect" {
@@ -96,7 +142,7 @@ pipeline "correct_kubernetes_clusters_vertical_pod_autoscaling_disabled" {
   title         = "Correct GKE clusters without vertical pod autoscaling"
   description   = "Executes corrective actions on GKE clusters without vertical pod autoscaling enabled."
   documentation = file("./pipelines/kubernetes/docs/correct_kubernetes_clusters_vertical_pod_autoscaling_disabled_pipeline.md")
-  tags          = merge(local.kubernetes_common_tags, { class = "unused" })
+  tags          = merge(local.kubernetes_common_tags, { class = "unused", folder = "Internal" })
 
   param "items" {
     type = list(object({
@@ -104,12 +150,12 @@ pipeline "correct_kubernetes_clusters_vertical_pod_autoscaling_disabled" {
       name     = string
       location = string
       project  = string
-      cred     = string
+      conn     = string
     }))
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -118,10 +164,11 @@ pipeline "correct_kubernetes_clusters_vertical_pod_autoscaling_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -130,17 +177,19 @@ pipeline "correct_kubernetes_clusters_vertical_pod_autoscaling_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.kubernetes_clusters_vertical_pod_autoscaling_disabled_default_action
+    enum        = local.kubernetes_clusters_vertical_pod_autoscaling_disabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.kubernetes_clusters_vertical_pod_autoscaling_disabled_enabled_actions
+    enum        = local.kubernetes_clusters_vertical_pod_autoscaling_disabled_enabled_actions
   }
 
   step "message" "notify_detection_count" {
-    if       = var.notification_level == local.level_verbose
-    notifier = notifier[param.notifier]
+    if       = var.notification_level == local.level_info
+    notifier = param.notifier
     text     = "Detected ${length(param.items)} GKE clusters without vertical pod autoscaling."
   }
 
@@ -153,7 +202,7 @@ pipeline "correct_kubernetes_clusters_vertical_pod_autoscaling_disabled" {
       name               = each.value.name
       location           = each.value.location
       project            = each.value.project
-      cred               = each.value.cred
+      conn               = connection.gcp[each.value.conn]
       notifier           = param.notifier
       notification_level = param.notification_level
       approvers          = param.approvers
@@ -167,11 +216,11 @@ pipeline "correct_one_kubernetes_cluster_vertical_pod_autoscaling_disabled" {
   title         = "Correct one GKE cluster without vertical pod autoscaling"
   description   = "Runs corrective action on a single GKE cluster without vertical pod autoscaling enabled."
   documentation = file("./pipelines/kubernetes/docs/correct_one_kubernetes_cluster_vertical_pod_autoscaling_disabled_pipeline.md")
-  tags          = merge(local.kubernetes_common_tags, { class = "unused" })
+  tags          = merge(local.kubernetes_common_tags, { class = "unused", folder = "Internal" })
 
-  param "cred" {
-    type        = string
-    description = local.description_credential
+  param "conn" {
+    type        = connection.gcp
+    description = local.description_connection
   }
 
   param "title" {
@@ -195,7 +244,7 @@ pipeline "correct_one_kubernetes_cluster_vertical_pod_autoscaling_disabled" {
   }
 
   param "notifier" {
-    type        = string
+    type        = notifier
     description = local.description_notifier
     default     = var.notifier
   }
@@ -204,10 +253,11 @@ pipeline "correct_one_kubernetes_cluster_vertical_pod_autoscaling_disabled" {
     type        = string
     description = local.description_notifier_level
     default     = var.notification_level
+    enum        = local.notification_level_enum
   }
 
   param "approvers" {
-    type        = list(string)
+    type        = list(notifier)
     description = local.description_approvers
     default     = var.approvers
   }
@@ -216,12 +266,14 @@ pipeline "correct_one_kubernetes_cluster_vertical_pod_autoscaling_disabled" {
     type        = string
     description = local.description_default_action
     default     = var.kubernetes_clusters_vertical_pod_autoscaling_disabled_default_action
+    enum        = local.kubernetes_clusters_vertical_pod_autoscaling_disabled_default_action
   }
 
   param "enabled_actions" {
     type        = list(string)
     description = local.description_enabled_actions
     default     = var.kubernetes_clusters_vertical_pod_autoscaling_disabled_enabled_actions
+    enum        = local.kubernetes_clusters_vertical_pod_autoscaling_disabled_enabled_actions
   }
 
   step "pipeline" "respond" {
@@ -238,7 +290,7 @@ pipeline "correct_one_kubernetes_cluster_vertical_pod_autoscaling_disabled" {
           label        = "Skip"
           value        = "skip"
           style        = local.style_info
-          pipeline_ref = local.pipeline_optional_message
+          pipeline_ref = detect_correct.pipeline.optional_message
           pipeline_args = {
             notifier = param.notifier
             send     = param.notification_level == local.level_verbose
@@ -251,10 +303,10 @@ pipeline "correct_one_kubernetes_cluster_vertical_pod_autoscaling_disabled" {
           label        = "Delete GKE Cluster"
           value        = "delete_kubernetes_cluster"
           style        = local.style_alert
-          pipeline_ref = local.gcp_pipeline_delete_kubernetes_cluster
+          pipeline_ref = gcp.pipeline.delete_kubernetes_cluster
           pipeline_args = {
             cluster_name = param.name
-            cred         = param.cred
+            conn         = param.conn
             project_id   = param.project
             zone         = param.location
           }
@@ -264,28 +316,4 @@ pipeline "correct_one_kubernetes_cluster_vertical_pod_autoscaling_disabled" {
       }
     }
   }
-}
-
-variable "kubernetes_clusters_vertical_pod_autoscaling_disabled_trigger_enabled" {
-  type        = bool
-  default     = false
-  description = "If true, the trigger is enabled."
-}
-
-variable "kubernetes_clusters_vertical_pod_autoscaling_disabled_trigger_schedule" {
-  type        = string
-  default     = "15m"
-  description = "The schedule on which to run the trigger if enabled."
-}
-
-variable "kubernetes_clusters_vertical_pod_autoscaling_disabled_default_action" {
-  type        = string
-  description = "The default action to use for the detected item, used if no input is provided."
-  default     = "notify"
-}
-
-variable "kubernetes_clusters_vertical_pod_autoscaling_disabled_enabled_actions" {
-  type        = list(string)
-  description = "The list of enabled actions to provide to approvers for selection."
-  default     = ["skip", "delete_kubernetes_cluster"]
 }
