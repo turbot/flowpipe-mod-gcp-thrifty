@@ -46,18 +46,12 @@ For more information on importing connections, please see [Connection Import](ht
 
 For more information on connections in Flowpipe, please see [Managing Connections](https://flowpipe.io/docs/run/connections).
 
-Clone the mod:
+Install the mod:
 
 ```sh
 mkdir gcp-thrifty
 cd gcp-thrifty
 flowpipe mod install github.com/turbot/flowpipe-mod-gcp-thrifty
-```
-
-Install the dependencies:
-
-```sh
-flowpipe mod install
 ```
 
 ### Configure Variables
