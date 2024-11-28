@@ -46,18 +46,12 @@ For more information on importing connections, please see [Connection Import](ht
 
 For more information on connections in Flowpipe, please see [Managing Connections](https://flowpipe.io/docs/run/connections).
 
-Clone the mod:
+Install the mod:
 
 ```sh
 mkdir gcp-thrifty
 cd gcp-thrifty
-git clone git@github.com:turbot/flowpipe-mod-gcp-thrifty.git
-```
-
-Install the dependencies:
-
-```sh
-flowpipe mod install
+flowpipe mod install github.com/turbot/flowpipe-mod-gcp-thrifty
 ```
 
 ### Configure Variables
@@ -72,20 +66,20 @@ The easiest approach is to setup your vars file, starting with the sample:
 cp flowpipe.fpvars.example flowpipe.fpvars
 vi flowpipe.fpvars
 
-flowpipe pipeline run detect_and_correct_compute_disks_exceeding_max_size --var-file=flowpipe.fpvars
+flowpipe pipeline run gcp_thrifty.pipeline.detect_and_correct_compute_disks_exceeding_max_size --var-file=flowpipe.fpvars
 ```
 
 Alternatively, you can pass variables on the command line:
 
 ```sh
-flowpipe pipeline run detect_and_correct_compute_disks_exceeding_max_size --var=compute_disks_exceeding_max_size=100
+flowpipe pipeline run gcp_thrifty.pipeline.detect_and_correct_compute_disks_exceeding_max_size --var=compute_disks_exceeding_max_size=100
 ```
 
 Or through environment variables:
 
 ```sh
 export FP_VAR_compute_disks_exceeding_max_size=100
-flowpipe pipeline run detect_and_correct_compute_disks_exceeding_max_size
+flowpipe pipeline run gcp_thrifty.pipeline.detect_and_correct_compute_disks_exceeding_max_size
 ```
 
 For more information, please see [Passing Input Variables](https://flowpipe.io/docs/build/mod-variables#passing-input-variables)
@@ -107,7 +101,7 @@ flowpipe pipeline list | grep "detect_and_correct"
 Then run your chosen pipeline:
 
 ```sh
-flowpipe pipeline run detect_and_correct_compute_disks_exceeding_max_size
+flowpipe pipeline run gcp_thrifty.pipeline.detect_and_correct_compute_disks_exceeding_max_size
 ```
 
 This will then run the pipeline and depending on your configured running mode; perform the relevant action(s), there are 3 running modes:
@@ -134,7 +128,7 @@ compute_disks_exceeding_max_size_default_action = "notify"
 or pass the `approvers` and `default_action` arguments on the command-line.
 
 ```sh
-flowpipe pipeline run detect_and_correct_compute_disks_exceeding_max_size --arg='default_action=notify' --arg='approvers=[]'
+flowpipe pipeline run gcp_thrifty.pipeline.detect_and_correct_compute_disks_exceeding_max_size --arg='default_action=notify' --arg='approvers=[]'
 ```
 
 #### Automatic
@@ -151,7 +145,7 @@ compute_disks_exceeding_max_size_default_action = "snapshot_and_delete_disk"
 or pass the `approvers` and `default_action` argument on the command-line.
 
 ```sh
-flowpipe pipeline run detect_and_correct_compute_disks_exceeding_max_size --arg='approvers=[] --arg='default_action=snapshot_and_delete_disk'
+flowpipe pipeline run gcp_thrifty.pipeline.detect_and_correct_compute_disks_exceeding_max_size --arg='approvers=[] --arg='default_action=snapshot_and_delete_disk'
 ```
 
 To further enhance this approach, you can enable the pipelines corresponding [query trigger](#running-query-triggers) to run completely hands-off.
